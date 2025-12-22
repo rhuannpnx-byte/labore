@@ -61,6 +61,9 @@ model Project {
   // Relatórios vinculados a esta obra
   reports     Report[]
   
+  // Gerações de relatórios vinculadas a esta obra
+  reportGenerations ReportGeneration[]
+  
   @@map("projects")
 }
 
@@ -249,6 +252,9 @@ model FormSubmission {
   // Resultados dos processamentos
   processingResults ProcessingResult[]
   
+  // Gerações de relatórios que usam esta submissão
+  reportGenerations ReportGeneration[]
+  
   @@map("form_submissions")
 }
 
@@ -334,6 +340,7 @@ model ReportElement {
   type        ReportElementType
   title       String?
   config      Json     // Configuração específica do elemento
+  style       Json?    // Estilo do elemento (cores, tamanhos, etc)
   order       Int
   
   createdAt   DateTime @default(now())
@@ -352,16 +359,22 @@ enum ReportElementType {
 
 // Geração de relatório (instância gerada)
 model ReportGeneration {
-  id          String   @id @default(uuid())
-  reportId    String
-  report      Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  id            String   @id @default(uuid())
+  reportId      String
+  report        Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
   
-  generatedAt DateTime @default(now())
-  generatedBy String?
-  user        User?    @relation(fields: [generatedBy], references: [id], onDelete: SetNull)
+  submissionId  String?
+  submission    FormSubmission? @relation(fields: [submissionId], references: [id], onDelete: SetNull)
   
-  data        Json     // Dados processados do relatório
-  filters     Json?    // Filtros aplicados na geração
+  projectId     String?
+  project       Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  
+  generatedAt   DateTime @default(now())
+  generatedBy   String?
+  user          User?    @relation(fields: [generatedBy], references: [id], onDelete: SetNull)
+  
+  data          Json     // Dados processados do relatório
+  filters       Json?    // Filtros aplicadas na geração
   
   @@map("report_generations")
 }

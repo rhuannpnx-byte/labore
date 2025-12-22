@@ -537,7 +537,7 @@ export const generateReport = async (req: Request, res: Response) => {
         report: true,
         submission: true,
         project: true,
-        generatedBy: {
+        user: {
           select: { id: true, name: true, email: true }
         }
       }
@@ -577,7 +577,7 @@ export const listGenerations = async (req: Request, res: Response) => {
         report: {
           select: { id: true, title: true }
         },
-        generatedBy: {
+        user: {
           select: { id: true, name: true, email: true }
         },
         project: {
@@ -606,7 +606,7 @@ export const getGeneration = async (req: Request, res: Response) => {
       where: { id: generationId },
       include: {
         report: true,
-        generatedBy: {
+        user: {
           select: { id: true, name: true, email: true }
         },
         project: true,
