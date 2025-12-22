@@ -10,9 +10,10 @@ import type {
 import { offlineDB } from './offline';
 import { syncService } from './sync';
 import { authService } from './auth';
+import { API_BASE_URL } from '../config/api.config';
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE_URL,
 });
 
 // Interceptor para adicionar token de autenticação
