@@ -1,14 +1,15 @@
 import axios, { AxiosInstance } from 'axios';
 import { authService } from './auth';
 import { offlineDB } from './offline';
-import { API_BASE_URL } from '../config/api.config';
+
+const API_URL = 'http://localhost:3000/api';
 
 class ApiClient {
   private client: AxiosInstance;
 
   constructor() {
     this.client = axios.create({
-      baseURL: API_BASE_URL
+      baseURL: API_URL
     });
 
     // Interceptor para adicionar token
