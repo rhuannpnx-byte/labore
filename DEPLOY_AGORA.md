@@ -25,7 +25,7 @@ const JWT_EXPIRES_IN: string = process.env.JWT_EXPIRES_IN || '7d';
 **Por quê funciona:**
 - TypeScript garante que o valor é sempre string
 - Não precisa de type assertions (`as string`)
-- Código mais limpo e elegante
+- Código mais limpo e elegante.
 
 ---
 
