@@ -1,0 +1,275 @@
+// Prisma Schema para Sistema de Formulários
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ====================================
+// MODELOS DE AUTENTICAÇÃO E HIERARQUIA
+// ====================================
+
+// Empresa (nível mais alto da hierarquia)
+model Company {
+  id          String   @id @default(uuid())
+  name        String
+  cnpj        String?  @unique
+  address     String?
+  phone       String?
+  email       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Obras da empresa
+  projects    Project[]
+  
+  // Usuários vinculados a esta empresa
+  users       User[]
+  
+  @@map("companies")
+}
+
+// Obra/Projeto (vinculado a uma empresa)
+model Project {
+  id          String   @id @default(uuid())
+  name        String
+  code        String?  // Código/Identificador da obra
+  address     String?
+  description String?
+  status      ProjectStatus @default(ACTIVE)
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Empresa dona do projeto
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  // Usuários com acesso a este projeto
+  userProjects UserProject[]
+  
+  // Formulários criados nesta obra
+  forms       Form[]
+  
+  // Formulários/Checklists preenchidos nesta obra
+  submissions FormSubmission[]
+  
+  @@map("projects")
+}
+
+enum ProjectStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+// Usuário do sistema
+model User {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  password    String   // Hash bcrypt
+  name        String
+  phone       String?
+  role        UserRole @default(LABORATORISTA)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Empresa vinculada (obrigatório para ADMIN, opcional para outros)
+  companyId   String?
+  company     Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  
+  // Projetos que o usuário tem acesso
+  userProjects UserProject[]
+  
+  // Formulários criados pelo usuário
+  formsCreated Form[]
+  
+  // Submissões realizadas pelo usuário
+  submissions FormSubmission[]
+  
+  @@map("users")
+}
+
+enum UserRole {
+  SUPERADMIN      // Acesso total ao sistema
+  ADMIN           // Administrador de uma empresa específica
+  ENGENHEIRO      // Pode criar formulários e relatórios
+  LABORATORISTA   // Pode preencher formulários
+}
+
+// Relação Usuário-Projeto (define quais projetos o usuário pode acessar)
+model UserProject {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  
+  @@unique([userId, projectId])
+  @@map("user_projects")
+}
+
+// ====================================
+// MODELOS DE FORMULÁRIOS
+// ====================================
+
+// Modelo do Formulário (Template)
+model Form {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  status      FormStatus @default(DRAFT)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Usuário criador do formulário
+  createdById String?
+  createdBy   User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  
+  // Projeto/Obra vinculado ao formulário
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  // Campos do formulário
+  fields      FormField[]
+  
+  // Regras de processamento
+  rules       ProcessingRule[]
+  
+  // Respostas submetidas
+  submissions FormSubmission[]
+  
+  @@map("forms")
+}
+
+enum FormStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+// Campos do formulário
+model FormField {
+  id          String    @id @default(uuid())
+  formId      String
+  form        Form      @relation(fields: [formId], references: [id], onDelete: Cascade)
+  
+  label       String
+  fieldKey    String    // Chave única usada nas fórmulas (ex: "campo1", "campo2")
+  type        FieldType
+  required    Boolean   @default(false)
+  order       Int
+  
+  // Configurações específicas do campo (JSON)
+  config      Json?     // Ex: { options: ["Sim", "Não"], min: 0, max: 100 }
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Respostas deste campo
+  responses   FieldResponse[]
+  
+  @@unique([formId, fieldKey])
+  @@map("form_fields")
+}
+
+enum FieldType {
+  TEXT
+  NUMBER
+  DATE
+  SELECT
+  MULTI_SELECT
+  CHECKBOX
+  TEXTAREA
+  EMAIL
+  PHONE
+}
+
+// Regras de processamento (fórmulas)
+model ProcessingRule {
+  id          String   @id @default(uuid())
+  formId      String
+  form        Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  
+  name        String   // Nome da regra (ex: "Cálculo do Total")
+  ruleKey     String   // Chave única (ex: "total_calculado")
+  formula     String   // Fórmula: (campo1 * campo2 / 3.14) * 30 * campo3
+  order       Int
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Resultados dos processamentos
+  results     ProcessingResult[]
+  
+  @@unique([formId, ruleKey])
+  @@map("processing_rules")
+}
+
+// Submissão de formulário (resposta completa)
+model FormSubmission {
+  id          String   @id @default(uuid())
+  formId      String
+  form        Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  
+  submittedAt DateTime @default(now())
+  
+  // Usuário que submeteu
+  submittedById String?
+  submittedBy   User?    @relation(fields: [submittedById], references: [id], onDelete: SetNull)
+  
+  // Projeto/Obra vinculado
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  
+  // Respostas dos campos
+  responses   FieldResponse[]
+  
+  // Resultados dos processamentos
+  processingResults ProcessingResult[]
+  
+  @@map("form_submissions")
+}
+
+// Resposta de um campo específico
+model FieldResponse {
+  id            String          @id @default(uuid())
+  submissionId  String
+  submission    FormSubmission  @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  
+  fieldId       String
+  field         FormField       @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  
+  value         String          // Valor armazenado como string (será convertido conforme o tipo)
+  
+  createdAt     DateTime        @default(now())
+  
+  @@unique([submissionId, fieldId])
+  @@map("field_responses")
+}
+
+// Resultado do processamento de uma regra
+model ProcessingResult {
+  id            String          @id @default(uuid())
+  submissionId  String
+  submission    FormSubmission  @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  
+  ruleId        String
+  rule          ProcessingRule  @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  
+  result        String          // Resultado calculado
+  calculatedAt  DateTime        @default(now())
+  
+  @@unique([submissionId, ruleId])
+  @@map("processing_results")
+}
+

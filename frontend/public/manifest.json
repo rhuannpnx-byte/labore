@@ -1,0 +1,17 @@
+{
+  "name": "Labore Forms",
+  "short_name": "Labore",
+  "description": "Sistema profissional de criação e processamento de formulários com suporte offline",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

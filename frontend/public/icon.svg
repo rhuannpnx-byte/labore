@@ -1,0 +1,21 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" rx="128" fill="#3B82F6"/>
+  
+  <!-- Document icon -->
+  <path d="M160 120C160 106.745 170.745 96 184 96H280L352 168V376C352 389.255 341.255 400 328 400H184C170.745 400 160 389.255 160 376V120Z" fill="white"/>
+  
+  <!-- Folded corner -->
+  <path d="M280 96V152C280 161.941 288.059 170 298 170H352L280 96Z" fill="#DBEAFE"/>
+  
+  <!-- Lines representing form fields -->
+  <rect x="200" y="220" width="112" height="12" rx="6" fill="#3B82F6"/>
+  <rect x="200" y="252" width="112" height="12" rx="6" fill="#3B82F6"/>
+  <rect x="200" y="284" width="80" height="12" rx="6" fill="#3B82F6"/>
+  
+  <!-- Checkmark -->
+  <circle cx="380" cy="380" r="60" fill="#10B981"/>
+  <path d="M360 380L370 390L400 360" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+
+

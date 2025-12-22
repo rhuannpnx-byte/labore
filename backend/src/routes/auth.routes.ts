@@ -1,0 +1,19 @@
+import { Router } from 'express';
+import { login, getMe, changePassword } from '../controllers/auth.controller';
+import { authenticate } from '../middleware/auth.middleware';
+
+const router = Router();
+
+// Rotas públicas
+router.post('/login', login);
+
+// Rotas protegidas
+router.get('/me', authenticate, getMe);
+router.post('/change-password', authenticate, changePassword);
+
+export default router;
+
+
+
+
+

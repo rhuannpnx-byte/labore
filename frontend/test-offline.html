@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teste de Funcionalidade Offline - Labore Forms</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      padding: 40px;
+      background: #f5f5f5;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    h1 {
+      color: #3b82f6;
+      margin-bottom: 10px;
+    }
+    
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+    }
+    
+    .status {
+      padding: 16px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .status.online {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    
+    .status.offline {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    
+    .test-section {
+      margin: 30px 0;
+      padding: 20px;
+      background: #f9fafb;
+      border-radius: 6px;
+      border-left: 4px solid #3b82f6;
+    }
+    
+    .test-section h2 {
+      margin-bottom: 15px;
+      color: #1f2937;
+    }
+    
+    button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      transition: background 0.2s;
+    }
+    
+    button:hover {
+      background: #2563eb;
+    }
+    
+    button:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+    
+    button.secondary {
+      background: #6b7280;
+    }
+    
+    button.secondary:hover {
+      background: #4b5563;
+    }
+    
+    button.danger {
+      background: #dc2626;
+    }
+    
+    button.danger:hover {
+      background: #b91c1c;
+    }
+    
+    .result {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    
+    .result.success {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    
+    .result.error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    
+    .result.info {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+    
+    code {
+      background: #e5e7eb;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 13px;
+    }
+    
+    .instructions {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 16px;
+      margin: 20px 0;
+      border-radius: 6px;
+    }
+    
+    .instructions h3 {
+      margin-bottom: 10px;
+      color: #92400e;
+    }
+    
+    .instructions ol {
+      margin-left: 20px;
+    }
+    
+    .instructions li {
+      margin: 8px 0;
+      color: #78350f;
+    }
+    
+    .metric {
+      display: inline-block;
+      background: #e5e7eb;
+      padding: 8px 16px;
+      border-radius: 6px;
+      margin: 5px 5px 5px 0;
+      font-size: 14px;
+    }
+    
+    .metric strong {
+      color: #3b82f6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 Teste de Funcionalidade Offline</h1>
+    <p class="subtitle">Ferramenta de teste para verificar a implementação offline-first</p>
+    
+    <!-- Status de Conexão -->
+    <div id="connectionStatus" class="status online">
+      <span id="statusIcon">🌐</span>
+      <span id="statusText">Online</span>
+    </div>
+    
+    <!-- Instruções -->
+    <div class="instructions">
+      <h3>📋 Como Testar</h3>
+      <ol>
+        <li>Verifique se a aplicação principal está rodando em <code>http://localhost:5173</code></li>
+        <li>Use os botões abaixo para testar cada funcionalidade</li>
+        <li>Para testar offline, use DevTools (F12 → Network → Throttling → Offline)</li>
+        <li>Os resultados aparecerão abaixo de cada botão</li>
+      </ol>
+    </div>
+    
+    <!-- Teste 1: IndexedDB -->
+    <div class="test-section">
+      <h2>1. IndexedDB</h2>
+      <p>Testa se o banco de dados local está funcionando</p>
+      <button onclick="testIndexedDB()">Testar IndexedDB</button>
+      <button class="secondary" onclick="clearIndexedDB()">Limpar IndexedDB</button>
+      <div id="indexedDBResult"></div>
+    </div>
+    
+    <!-- Teste 2: Service Worker -->
+    <div class="test-section">
+      <h2>2. Service Worker</h2>
+      <p>Verifica se o Service Worker está registrado</p>
+      <button onclick="testServiceWorker()">Verificar Service Worker</button>
+      <button class="danger" onclick="unregisterServiceWorker()">Desregistrar SW</button>
+      <div id="serviceWorkerResult"></div>
+    </div>
+    
+    <!-- Teste 3: Submissions Pendentes -->
+    <div class="test-section">
+      <h2>3. Submissions Pendentes</h2>
+      <p>Simula criar uma submission offline</p>
+      <button onclick="createMockSubmission()">Criar Submission Mock</button>
+      <button onclick="listPendingSubmissions()">Listar Pendentes</button>
+      <button class="secondary" onclick="forceSync()">Forçar Sincronização</button>
+      <div id="pendingResult"></div>
+    </div>
+    
+    <!-- Teste 4: Cache de Formulários -->
+    <div class="test-section">
+      <h2>4. Cache de Formulários</h2>
+      <p>Testa o cache de formulários</p>
+      <button onclick="testFormCache()">Testar Cache</button>
+      <button class="secondary" onclick="listCachedForms()">Listar Formulários em Cache</button>
+      <div id="cacheResult"></div>
+    </div>
+    
+    <!-- Teste 5: Detecção Online/Offline -->
+    <div class="test-section">
+      <h2>5. Detecção Online/Offline</h2>
+      <p>Verifica se os eventos online/offline estão funcionando</p>
+      <button onclick="simulateOffline()">Simular Offline (Console)</button>
+      <button onclick="simulateOnline()">Simular Online (Console)</button>
+      <div id="onlineResult"></div>
+    </div>
+    
+    <!-- Métricas -->
+    <div class="test-section">
+      <h2>📊 Métricas</h2>
+      <button onclick="showMetrics()">Atualizar Métricas</button>
+      <div id="metricsResult"></div>
+    </div>
+  </div>
+
+  <script>
+    // Atualiza status de conexão em tempo real
+    function updateConnectionStatus() {
+      const status = document.getElementById('connectionStatus');
+      const icon = document.getElementById('statusIcon');
+      const text = document.getElementById('statusText');
+      
+      if (navigator.onLine) {
+        status.className = 'status online';
+        icon.textContent = '🌐';
+        text.textContent = 'Online';
+      } else {
+        status.className = 'status offline';
+        icon.textContent = '📴';
+        text.textContent = 'Offline';
+      }
+    }
+    
+    window.addEventListener('online', updateConnectionStatus);
+    window.addEventListener('offline', updateConnectionStatus);
+    updateConnectionStatus();
+    
+    // Funções auxiliares
+    function showResult(elementId, message, type = 'info') {
+      const el = document.getElementById(elementId);
+      el.innerHTML = `<div class="result ${type}">${message}</div>`;
+    }
+    
+    // Teste 1: IndexedDB
+    async function testIndexedDB() {
+      try {
+        const request = indexedDB.open('labore_forms_offline', 1);
+        
+        request.onsuccess = () => {
+          const db = request.result;
+          const stores = Array.from(db.objectStoreNames);
+          showResult('indexedDBResult', 
+            `✅ IndexedDB funcionando!<br>` +
+            `<strong>Stores:</strong> ${stores.join(', ')}<br>` +
+            `<strong>Versão:</strong> ${db.version}`,
+            'success'
+          );
+        };
+        
+        request.onerror = () => {
+          showResult('indexedDBResult', 
+            `❌ Erro ao abrir IndexedDB: ${request.error}`,
+            'error'
+          );
+        };
+      } catch (error) {
+        showResult('indexedDBResult', 
+          `❌ Erro: ${error.message}`,
+          'error'
+        );
+      }
+    }
+    
+    async function clearIndexedDB() {
+      if (!confirm('Tem certeza? Isso apagará todos os dados offline.')) return;
+      
+      try {
+        indexedDB.deleteDatabase('labore_forms_offline');
+        showResult('indexedDBResult', 
+          '✅ IndexedDB limpo com sucesso! Recarregue a página.',
+          'success'
+        );
+      } catch (error) {
+        showResult('indexedDBResult', 
+          `❌ Erro ao limpar: ${error.message}`,
+          'error'
+        );
+      }
+    }
+    
+    // Teste 2: Service Worker
+    async function testServiceWorker() {
+      if (!('serviceWorker' in navigator)) {
+        showResult('serviceWorkerResult', 
+          '❌ Service Workers não suportados neste navegador',
+          'error'
+        );
+        return;
+      }
+      
+      try {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        
+        if (registrations.length === 0) {
+          showResult('serviceWorkerResult', 
+            '⚠️ Nenhum Service Worker registrado<br>' +
+            'Abra a aplicação principal para registrar.',
+            'info'
+          );
+        } else {
+          const info = registrations.map(reg => 
+            `Escopo: ${reg.scope}<br>` +
+            `Status: ${reg.active ? 'Ativo ✅' : 'Inativo ❌'}`
+          ).join('<br><br>');
+          
+          showResult('serviceWorkerResult', 
+            `✅ ${registrations.length} Service Worker(s) registrado(s)<br><br>${info}`,
+            'success'
+          );
+        }
+      } catch (error) {
+        showResult('serviceWorkerResult', 
+          `❌ Erro: ${error.message}`,
+          'error'
+        );
+      }
+    }
+    
+    async function unregisterServiceWorker() {
+      if (!confirm('Desregistrar todos os Service Workers?')) return;
+      
+      try {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map(reg => reg.unregister()));
+        
+        showResult('serviceWorkerResult', 
+          `✅ ${registrations.length} Service Worker(s) desregistrado(s)`,
+          'success'
+        );
+      } catch (error) {
+        showResult('serviceWorkerResult', 
+          `❌ Erro: ${error.message}`,
+          'error'
+        );
+      }
+    }
+    
+    // Teste 3: Submissions Pendentes
+    async function createMockSubmission() {
+      try {
+        const request = indexedDB.open('labore_forms_offline', 1);
+        
+        request.onsuccess = () => {
+          const db = request.result;
+          const tx = db.transaction('pending_submissions', 'readwrite');
+          const store = tx.objectStore('pending_submissions');
+          
+          const mockSubmission = {
+            id: `mock_${Date.now()}`,
+            formId: 'mock-form-id',
+            data: {
+              formId: 'mock-form-id',
+              responses: [
+                { fieldId: 'field1', value: 'Teste Offline' },
+                { fieldId: 'field2', value: '42' }
+              ]
+            },
+            timestamp: Date.now(),
+            attempts: 0
+          };
+          
+          store.add(mockSubmission);
+          
+          tx.oncomplete = () => {
+            showResult('pendingResult', 
+              '✅ Submission mock criada com sucesso!',
+              'success'
+            );
+          };
+          
+          tx.onerror = () => {
+            showResult('pendingResult', 
+              `❌ Erro: ${tx.error}`,
+              'error'
+            );
+          };
+        };
+      } catch (error) {
+        showResult('pendingResult', 
+          `❌ Erro: ${error.message}`,
+          'error'
+        );
+      }
+    }
+    
+    async function listPendingSubmissions() {
+      try {
+        const request = indexedDB.open('labore_forms_offline', 1);
+        
+        request.onsuccess = () => {
+          const db = request.result;
+          const tx = db.transaction('pending_submissions', 'readonly');
+          const store = tx.objectStore('pending_submissions');
+          const getAll = store.getAll();
+          
+          getAll.onsuccess = () => {
+            const submissions = getAll.result;
+            
+            if (submissions.length === 0) {
+              showResult('pendingResult', 
+                'ℹ️ Nenhuma submission pendente',
+                'info'
+              );
+            } else {
+              const list = submissions.map((s, i) => 
+                `${i + 1}. ID: ${s.id}<br>` +
+                `   Form: ${s.formId}<br>` +
+                `   Respostas: ${s.data.responses.length}<br>` +
+                `   Tentativas: ${s.attempts}`
+              ).join('<br><br>');
+              
+              showResult('pendingResult', 
+                `✅ ${submissions.length} submission(s) pendente(s):<br><br>${list}`,
+                'success'
+              );
+            }
+          };
+        };
+      } catch (error) {
+        showResult('pendingResult', 
+          `❌ Erro: ${error.message}`,
+          'error'
+        );
+      }
+    }
+    
+    function forceSync() {
+      showResult('pendingResult', 
+        '⚠️ Para forçar sincronização, abra o Console da aplicação principal e execute:<br><br>' +
+        '<code>syncService.forcSync()</code><br><br>' +
+        'Ou use o botão "Sync" no OfflineIndicator',
+        'info'
+      );
+    }
+    
+    // Teste 4: Cache de Formulários
+    async function testFormCache() {
+      try {
+        const request = indexedDB.open('labore_forms_offline', 1);
+        
+        request.onsuccess = () => {
+          const db = request.result;
+          const tx = db.transaction('cached_forms', 'readwrite');
+          const store = tx.objectStore('cached_forms');
+          
+          const mockForm = {
+            id: 'mock-form',
+            title: 'Formulário de Teste',
+            description: 'Criado pelo teste offline',
+            status: 'ACTIVE',
+            fields: [],
+            rules: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+          
+          store.put(mockForm);
+          
+          tx.oncomplete = () => {
+            showResult('cacheResult', 
+              '✅ Formulário mock adicionado ao cache!',
+              'success'
+            );
+          };
+        };
+      } catch (error) {
+        showResult('cacheResult', 
+          `❌ Erro: ${error.message}`,
+          'error'
+        );
+      }
+    }
+    
+    async function listCachedForms() {
+      try {
+        const request = indexedDB.open('labore_forms_offline', 1);
+        
+        request.onsuccess = () => {
+          const db = request.result;
+          const tx = db.transaction('cached_forms', 'readonly');
+          const store = tx.objectStore('cached_forms');
+          const getAll = store.getAll();
+          
+          getAll.onsuccess = () => {
+            const forms = getAll.result;
+            
+            if (forms.length === 0) {
+              showResult('cacheResult', 
+                'ℹ️ Nenhum formulário em cache<br>Visite alguns formulários na aplicação principal.',
+                'info'
+              );
+            } else {
+              const list = forms.map((f, i) => 
+                `${i + 1}. <strong>${f.title}</strong><br>` +
+                `   ID: ${f.id}<br>` +
+                `   Status: ${f.status}<br>` +
+                `   Campos: ${f.fields.length}`
+              ).join('<br><br>');
+              
+              showResult('cacheResult', 
+                `✅ ${forms.length} formulário(s) em cache:<br><br>${list}`,
+                'success'
+              );
+            }
+          };
+        };
+      } catch (error) {
+        showResult('cacheResult', 
+          `❌ Erro: ${error.message}`,
+          'error'
+        );
+      }
+    }
+    
+    // Teste 5: Online/Offline
+    function simulateOffline() {
+      showResult('onlineResult', 
+        'ℹ️ Para simular offline:<br><br>' +
+        '1. Abra DevTools (F12)<br>' +
+        '2. Vá para aba Network<br>' +
+        '3. Dropdown "Throttling"<br>' +
+        '4. Selecione "Offline"<br><br>' +
+        'Ou desconecte o WiFi/Ethernet',
+        'info'
+      );
+    }
+    
+    function simulateOnline() {
+      showResult('onlineResult', 
+        'ℹ️ Para simular voltar online:<br><br>' +
+        '1. DevTools → Network → Throttling → "Online"<br>' +
+        '2. Ou reconecte WiFi/Ethernet<br><br>' +
+        `Status atual: <strong>${navigator.onLine ? 'Online 🌐' : 'Offline 📴'}</strong>`,
+        'info'
+      );
+    }
+    
+    // Métricas
+    async function showMetrics() {
+      try {
+        const request = indexedDB.open('labore_forms_offline', 1);
+        
+        request.onsuccess = () => {
+          const db = request.result;
+          
+          // Conta pendentes
+          const pendingTx = db.transaction('pending_submissions', 'readonly');
+          const pendingStore = pendingTx.objectStore('pending_submissions');
+          const pendingCount = pendingStore.count();
+          
+          // Conta cache
+          const cacheTx = db.transaction('cached_forms', 'readonly');
+          const cacheStore = cacheTx.objectStore('cached_forms');
+          const cacheCount = cacheStore.count();
+          
+          Promise.all([
+            new Promise(resolve => { pendingCount.onsuccess = () => resolve(pendingCount.result); }),
+            new Promise(resolve => { cacheCount.onsuccess = () => resolve(cacheCount.result); })
+          ]).then(([pending, cached]) => {
+            showResult('metricsResult', 
+              '<div class="metric"><strong>Status:</strong> ' + (navigator.onLine ? 'Online 🌐' : 'Offline 📴') + '</div>' +
+              '<div class="metric"><strong>Pendentes:</strong> ' + pending + '</div>' +
+              '<div class="metric"><strong>Cache:</strong> ' + cached + ' formulário(s)</div>' +
+              '<div class="metric"><strong>IndexedDB:</strong> ✅ Funcionando</div>' +
+              '<div class="metric"><strong>Service Worker:</strong> ' + ('serviceWorker' in navigator ? '✅ Suportado' : '❌ Não suportado') + '</div>',
+              'info'
+            );
+          });
+        };
+      } catch (error) {
+        showResult('metricsResult', 
+          `❌ Erro: ${error.message}`,
+          'error'
+        );
+      }
+    }
+    
+    // Carrega métricas ao iniciar
+    setTimeout(showMetrics, 500);
+  </script>
+</body>
+</html>
+
+
+
+
+
