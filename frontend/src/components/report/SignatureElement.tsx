@@ -28,6 +28,7 @@ export const SignatureElement: React.FC<SignatureElementProps> = ({
 
     const newSignature: SignatureField = {
       id: Date.now().toString(),
+      label: 'Assinatura',
       description: 'Descrição',
       responsibleName: 'Nome do usuário',
       align: config.signatures.length === 0 ? 'left' : 

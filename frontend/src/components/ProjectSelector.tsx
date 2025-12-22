@@ -36,7 +36,7 @@ export default function ProjectSelector() {
     }
   };
 
-  const handleSelectProject = (project: Project) => {
+  const handleSelectProject = (project: any) => {
     setSelectedProject(project);
     setIsOpen(false);
   };

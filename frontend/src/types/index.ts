@@ -199,7 +199,7 @@ export interface CreateElementData {
 // Configs específicos por tipo de elemento
 export interface TextElementConfig {
   content: string;
-  fontSize?: 'sm' | 'base' | 'lg' | 'xl' | '2xl' | number;
+  fontSize?: 'sm' | 'base' | 'lg' | 'xl' | '2xl' | number | string;
   fontWeight?: 'normal' | 'medium' | 'semibold' | 'bold';
   textAlign?: 'left' | 'center' | 'right' | 'justify';
   align?: 'left' | 'center' | 'right' | 'justify';
@@ -241,12 +241,12 @@ export interface TableElementConfig {
   striped?: boolean;
   headerBackground?: string;
   headerColor?: string;
-  cellPadding?: string;
+  cellPadding?: string | number;
   showBorders?: boolean;
-  headerFontSize?: string;
-  headerHeight?: string;
-  cellFontSize?: string;
-  cellHeight?: string;
+  headerFontSize?: string | number;
+  headerHeight?: string | number;
+  cellFontSize?: string | number;
+  cellHeight?: string | number;
   alternateRows?: boolean;
 }
 

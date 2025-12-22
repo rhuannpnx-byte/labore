@@ -341,7 +341,7 @@ export default function FormBuilder() {
                       value={fieldLabel}
                       onChange={(e) => setFieldLabel(e.target.value)}
                       placeholder="Ex: Resistência do Concreto"
-                      size="sm"
+                      size={"sm" as any}
                     />
                     
                     <Input
@@ -349,7 +349,7 @@ export default function FormBuilder() {
                       value={fieldKey}
                       onChange={(e) => setFieldKey(e.target.value)}
                       placeholder="Ex: resistencia_concreto"
-                      size="sm"
+                      size={"sm" as any}
                     />
                     
                     <div>
@@ -466,7 +466,7 @@ export default function FormBuilder() {
                       value={ruleName}
                       onChange={(e) => setRuleName(e.target.value)}
                       placeholder="Ex: Cálculo de FCK"
-                      size="sm"
+                      size={"sm" as any}
                     />
                     
                     <Input
@@ -474,7 +474,7 @@ export default function FormBuilder() {
                       value={ruleKey}
                       onChange={(e) => setRuleKey(e.target.value)}
                       placeholder="Ex: calculo_fck"
-                      size="sm"
+                      size={"sm" as any}
                     />
                     
                     <div>
