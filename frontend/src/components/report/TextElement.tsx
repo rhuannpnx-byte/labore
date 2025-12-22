@@ -149,7 +149,7 @@ export const TextElement: React.FC<TextElementProps> = ({
               </label>
               <input
                 type="number"
-                value={parseFloat(config.letterSpacing || '0')}
+                value={parseFloat(String(config.letterSpacing || '0'))}
                 onChange={(e) => onChange?.({ ...config, letterSpacing: e.target.value + 'px' })}
                 className="w-full px-2 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500"
                 min="-2"
@@ -164,7 +164,7 @@ export const TextElement: React.FC<TextElementProps> = ({
               </label>
               <input
                 type="number"
-                value={parseInt(config.padding || '0')}
+                value={parseInt(String(config.padding || '0'))}
                 onChange={(e) => onChange?.({ ...config, padding: e.target.value + 'px' })}
                 className="w-full px-2 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500"
                 min="0"
