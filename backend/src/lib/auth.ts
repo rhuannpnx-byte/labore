@@ -1,9 +1,9 @@
 import bcrypt from 'bcrypt';
-import jwt, { SignOptions } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 
 // Configurações
-const JWT_SECRET = process.env.JWT_SECRET || 'sua-chave-secreta-super-segura-mude-em-producao';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+const JWT_SECRET: string = process.env.JWT_SECRET || 'sua-chave-secreta-super-segura-mude-em-producao';
+const JWT_EXPIRES_IN: string = process.env.JWT_EXPIRES_IN || '7d';
 const SALT_ROUNDS = 10;
 
 // Interface do payload do JWT
@@ -27,10 +27,7 @@ export async function comparePassword(password: string, hash: string): Promise<b
 
 // Gerar token JWT
 export function generateToken(payload: JWTPayload): string {
-  const options: SignOptions = {
-    expiresIn: JWT_EXPIRES_IN
-  };
-  return jwt.sign(payload, JWT_SECRET, options);
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 }
 
 // Verificar token JWT
