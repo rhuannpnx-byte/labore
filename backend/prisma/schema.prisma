@@ -58,6 +58,9 @@ model Project {
   // Formulários/Checklists preenchidos nesta obra
   submissions FormSubmission[]
   
+  // Relatórios vinculados a esta obra
+  reports     Report[]
+  
   @@map("projects")
 }
 
@@ -92,6 +95,12 @@ model User {
   
   // Submissões realizadas pelo usuário
   submissions FormSubmission[]
+  
+  // Relatórios criados pelo usuário
+  reportsCreated Report[]
+  
+  // Gerações de relatórios realizadas pelo usuário
+  reportGenerations ReportGeneration[]
   
   @@map("users")
 }
@@ -147,6 +156,9 @@ model Form {
   
   // Respostas submetidas
   submissions FormSubmission[]
+  
+  // Relatórios que usam este formulário
+  reports     Report[]
   
   @@map("forms")
 }
@@ -271,5 +283,86 @@ model ProcessingResult {
   
   @@unique([submissionId, ruleId])
   @@map("processing_results")
+}
+
+// ====================================
+// MODELOS DE RELATÓRIOS
+// ====================================
+
+// Relatório (Template de relatório)
+model Report {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  status      ReportStatus @default(DRAFT)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Formulário vinculado ao relatório
+  formId      String?
+  form        Form?    @relation(fields: [formId], references: [id], onDelete: SetNull)
+  
+  // Projeto vinculado ao relatório
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  // Usuário criador do relatório
+  createdById String?
+  createdBy   User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  
+  // Elementos do relatório
+  elements    ReportElement[]
+  
+  // Gerações do relatório
+  generations ReportGeneration[]
+  
+  @@map("reports")
+}
+
+enum ReportStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+// Elementos do relatório (gráficos, tabelas, etc)
+model ReportElement {
+  id          String   @id @default(uuid())
+  reportId    String
+  report      Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  
+  type        ReportElementType
+  title       String?
+  config      Json     // Configuração específica do elemento
+  order       Int
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("report_elements")
+}
+
+enum ReportElementType {
+  CHART
+  TABLE
+  TEXT
+  METRIC
+  CUSTOM
+}
+
+// Geração de relatório (instância gerada)
+model ReportGeneration {
+  id          String   @id @default(uuid())
+  reportId    String
+  report      Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  
+  generatedAt DateTime @default(now())
+  generatedBy String?
+  user        User?    @relation(fields: [generatedBy], references: [id], onDelete: SetNull)
+  
+  data        Json     // Dados processados do relatório
+  filters     Json?    // Filtros aplicados na geração
+  
+  @@map("report_generations")
 }
 

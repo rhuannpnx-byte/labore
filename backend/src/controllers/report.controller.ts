@@ -22,7 +22,7 @@ export const listReports = async (req: Request, res: Response) => {
     // Se não for SUPERADMIN, filtrar por empresa
     if (user.role !== 'SUPERADMIN') {
       where.OR = [
-        { createdById: user.id }, // Relatórios criados pelo usuário
+        { createdById: user.userId }, // Relatórios criados pelo usuário
         { projectId: null }, // Relatórios globais
       ];
 
@@ -31,7 +31,7 @@ export const listReports = async (req: Request, res: Response) => {
         where.OR.push({
           project: {
             userProjects: {
-              some: { userId: user.id }
+              some: { userId: user.userId }
             }
           }
         });
@@ -108,15 +108,15 @@ export const getReport = async (req: Request, res: Response) => {
       if (report.projectId) {
         const hasAccess = await prisma.userProject.findFirst({
           where: {
-            userId: user.id,
+            userId: user.userId,
             projectId: report.projectId
           }
         });
 
-        if (!hasAccess && report.createdById !== user.id) {
+        if (!hasAccess && report.createdById !== user.userId) {
           return res.status(403).json({ error: 'Acesso negado' });
         }
-      } else if (report.createdById !== user.id) {
+      } else if (report.createdById !== user.userId) {
         // Se não tem projeto e não é o criador, negar acesso
         return res.status(403).json({ error: 'Acesso negado' });
       }
@@ -162,7 +162,7 @@ export const createReport = async (req: Request, res: Response) => {
     if (projectId) {
       const hasAccess = await prisma.userProject.findFirst({
         where: {
-          userId: user.id,
+          userId: user.userId,
           projectId
         }
       });
@@ -179,7 +179,7 @@ export const createReport = async (req: Request, res: Response) => {
         formId,
         projectId: projectId || null,
         status: status || 'DRAFT',
-        createdById: user.id
+        createdById: user.userId
       },
       include: {
         createdBy: {
@@ -218,7 +218,7 @@ export const updateReport = async (req: Request, res: Response) => {
     }
 
     // Verificar permissões
-    if (user.role !== 'SUPERADMIN' && existingReport.createdById !== user.id) {
+    if (user.role !== 'SUPERADMIN' && existingReport.createdById !== user.userId) {
       return res.status(403).json({ error: 'Você não pode editar este relatório' });
     }
 
@@ -277,7 +277,7 @@ export const deleteReport = async (req: Request, res: Response) => {
     }
 
     // Verificar permissões
-    if (user.role !== 'SUPERADMIN' && report.createdById !== user.id) {
+    if (user.role !== 'SUPERADMIN' && report.createdById !== user.userId) {
       return res.status(403).json({ error: 'Você não pode deletar este relatório' });
     }
 
@@ -310,7 +310,7 @@ export const addElement = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Relatório não encontrado' });
     }
 
-    if (user.role !== 'SUPERADMIN' && report.createdById !== user.id) {
+    if (user.role !== 'SUPERADMIN' && report.createdById !== user.userId) {
       return res.status(403).json({ error: 'Você não pode editar este relatório' });
     }
 
@@ -358,7 +358,7 @@ export const updateElement = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Elemento não encontrado' });
     }
 
-    if (user.role !== 'SUPERADMIN' && element.report.createdById !== user.id) {
+    if (user.role !== 'SUPERADMIN' && element.report.createdById !== user.userId) {
       return res.status(403).json({ error: 'Você não pode editar este elemento' });
     }
 
@@ -393,7 +393,7 @@ export const deleteElement = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Elemento não encontrado' });
     }
 
-    if (user.role !== 'SUPERADMIN' && element.report.createdById !== user.id) {
+    if (user.role !== 'SUPERADMIN' && element.report.createdById !== user.userId) {
       return res.status(403).json({ error: 'Você não pode deletar este elemento' });
     }
 
@@ -507,7 +507,7 @@ export const generateReport = async (req: Request, res: Response) => {
         reportId,
         submissionId: submissionId || null,
         projectId: projectId || null,
-        generatedById: user.id,
+        generatedBy: user.userId,
         data: {
           report: {
             id: report.id,

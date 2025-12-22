@@ -8,7 +8,3 @@ declare global {
   }
 }
 
-
-
-
-

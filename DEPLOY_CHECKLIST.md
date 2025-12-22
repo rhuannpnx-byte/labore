@@ -6,6 +6,10 @@
 - ✅ **Dependências de tipos movidas para production** (não serão ignoradas pelo Render)
 - ✅ **Script de build otimizado** (Prisma Client gerado antes da compilação)
 - ✅ **Tipos explícitos nos controllers** (erros TS7006 resolvidos)
+- ✅ **Modelos Report adicionados ao schema Prisma** (Report, ReportElement, ReportGeneration)
+- ✅ **Interface JWTPayload estendida** (adicionado campo `name`)
+- ✅ **Tipo Request do Express estendido** (reconhece `req.user`)
+- ✅ **Correções no report.controller** (`user.id` → `user.userId`)
 - ✅ **Arquivo render.yaml criado** (configuração otimizada)
 
 ## 🚀 Próximos Passos
@@ -47,8 +51,9 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ### 4. Acompanhar o Build
 
 Verifique os logs em tempo real no Render:
-- Deve aparecer: ✅ `added 112 packages` (ou similar)
+- Deve aparecer: ✅ `added 130+ packages` (ou similar)
 - Deve aparecer: ✅ `prisma generate` executado com sucesso
+- Deve aparecer: ✅ `Generated Prisma Client` (com modelos Report)
 - Deve aparecer: ✅ Build completed successfully
 
 ### 5. Executar Migrações do Banco
@@ -94,12 +99,27 @@ curl https://seu-app.onrender.com/api/health
 2. **backend/tsconfig.json**
    - Adicionado: `"types": ["node"]`
    - Adicionado: `"noImplicitAny": true`
+   - Incluído arquivo de tipos: `express.d.ts`
 
-3. **Controllers (4 arquivos)**
+3. **backend/prisma/schema.prisma**
+   - Adicionados modelos: Report, ReportElement, ReportGeneration
+   - Relações com User, Project e Form
+
+4. **backend/src/lib/auth.ts**
+   - Tipo JWT_EXPIRES_IN explícito
+   - Campo `name` adicionado ao JWTPayload
+
+5. **backend/src/middleware/auth.middleware.ts**
+   - Campo `name` incluído em req.user
+
+6. **backend/src/types/express.d.ts (novo)**
+   - Extensão do tipo Request do Express
+
+7. **Controllers (5 arquivos)**
    - Tipos explícitos em funções map/filter
-   - Type assertions onde necessário
+   - `user.id` → `user.userId` no report.controller
 
-4. **render.yaml (novo)**
+8. **render.yaml (novo)**
    - Configuração otimizada do Render
    - Build command correto para workspaces
 

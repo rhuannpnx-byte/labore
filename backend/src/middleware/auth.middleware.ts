@@ -17,7 +17,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
     // Verificar se o usuário ainda existe e está ativo
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      select: { id: true, email: true, role: true, isActive: true, companyId: true }
+      select: { id: true, email: true, name: true, role: true, isActive: true, companyId: true }
     });
 
     if (!user || !user.isActive) {
@@ -27,6 +27,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
     req.user = {
       userId: user.id,
       email: user.email,
+      name: user.name,
       role: user.role,
       companyId: user.companyId || undefined
     };
