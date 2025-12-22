@@ -273,7 +273,7 @@ export class FormController {
       }
       
       // Verifica se todos os IDs fornecidos pertencem ao formulário
-      const formFieldIds = form.fields.map(f => f.id);
+      const formFieldIds = form.fields.map((f: any) => f.id);
       const invalidIds = fieldIds.filter((fid: string) => !formFieldIds.includes(fid));
       
       if (invalidIds.length > 0) {
@@ -323,8 +323,8 @@ export class FormController {
         
         // Verifica se todas as referências existem (campos ou regras)
         const references = FormulaEngine.extractFieldReferences(data.formula);
-        const formFieldKeys = form.fields.map(f => f.fieldKey);
-        const formRuleKeys = form.rules.map(r => r.ruleKey);
+        const formFieldKeys = form.fields.map((f: any) => f.fieldKey);
+        const formRuleKeys = form.rules.map((r: any) => r.ruleKey);
         const allAvailableKeys = [...formFieldKeys, ...formRuleKeys];
         
         const missingRefs = references.filter(ref => !allAvailableKeys.includes(ref));
@@ -401,8 +401,8 @@ export class FormController {
           
           // Verifica se todas as referências existem (campos ou regras)
           const references = FormulaEngine.extractFieldReferences(data.formula);
-          const formFieldKeys = form.fields.map(f => f.fieldKey);
-          const formRuleKeys = form.rules.filter(r => r.id !== ruleId).map(r => r.ruleKey);
+          const formFieldKeys = form.fields.map((f: any) => f.fieldKey);
+          const formRuleKeys = form.rules.filter((r: any) => r.id !== ruleId).map((r: any) => r.ruleKey);
           const allAvailableKeys = [...formFieldKeys, ...formRuleKeys];
           
           const missingRefs = references.filter(ref => !allAvailableKeys.includes(ref));
@@ -492,8 +492,8 @@ export class FormController {
         }
         
         const references = FormulaEngine.extractFieldReferences(formula);
-        const formFieldKeys = form.fields.map(f => f.fieldKey);
-        const formRuleKeys = form.rules.map(r => r.ruleKey);
+        const formFieldKeys = form.fields.map((f: any) => f.fieldKey);
+        const formRuleKeys = form.rules.map((r: any) => r.ruleKey);
         const allAvailableKeys = [...formFieldKeys, ...formRuleKeys];
         
         const missingRefs = references.filter(ref => !allAvailableKeys.includes(ref));

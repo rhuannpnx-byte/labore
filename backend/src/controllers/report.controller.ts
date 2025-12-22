@@ -476,7 +476,7 @@ export const generateReport = async (req: Request, res: Response) => {
     }
 
     // Processar elementos e vincular dados
-    const processedElements = report.elements.map(element => {
+    const processedElements = report.elements.map((element: any) => {
       const processedElement = {
         ...element,
         processedConfig: element.config

@@ -51,7 +51,7 @@ export async function listProjects(req: Request, res: Response) {
         where: { userId: req.user.userId },
         select: { projectId: true }
       });
-      where.id = { in: userProjects.map(up => up.projectId) };
+      where.id = { in: userProjects.map((up: any) => up.projectId) };
     }
 
     const projects = await prisma.project.findMany({

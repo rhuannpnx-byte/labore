@@ -147,20 +147,20 @@ export class SubmissionController {
       }
       
       // Valida campos obrigatórios
-      const requiredFields = form.fields.filter(f => f.required);
-      const providedFieldIds = data.responses.map(r => r.fieldId);
+      const requiredFields = form.fields.filter((f: any) => f.required);
+      const providedFieldIds = data.responses.map((r: any) => r.fieldId);
       
-      const missingRequiredFields = requiredFields.filter(f => !providedFieldIds.includes(f.id));
+      const missingRequiredFields = requiredFields.filter((f: any) => !providedFieldIds.includes(f.id));
       if (missingRequiredFields.length > 0) {
         return res.status(400).json({ 
           error: 'Campos obrigatórios não preenchidos',
-          missingFields: missingRequiredFields.map(f => ({ id: f.id, label: f.label }))
+          missingFields: missingRequiredFields.map((f: any) => ({ id: f.id, label: f.label }))
         });
       }
       
       // Valida tipos de campos
       for (const response of data.responses) {
-        const field = form.fields.find(f => f.id === response.fieldId);
+        const field = form.fields.find((f: any) => f.id === response.fieldId);
         if (!field) {
           return res.status(400).json({ error: `Campo ${response.fieldId} não encontrado` });
         }
@@ -244,9 +244,9 @@ export class SubmissionController {
               
               processingResults.push(processingResult);
             } catch (error: any) {
-              console.error(`Erro ao processar regra ${rule.name}:`, error);
+              console.error(`Erro ao processar regra ${(rule as any).name}:`, error);
               // Armazena erro como resultado para não quebrar dependências
-              ruleResults[rule.ruleKey] = '0';
+              ruleResults[(rule as any).ruleKey] = '0';
             }
           }
         } catch (error: any) {
