@@ -1,4 +1,19 @@
 export type FormStatus = 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
+export type ProjectStatus = 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
+
+export interface Project {
+  id: string;
+  name: string;
+  code?: string;
+  address?: string;
+  description?: string;
+  status: ProjectStatus;
+  companyId: string;
+  startDate?: string;
+  endDate?: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export type FieldType = 
   | 'TEXT'
@@ -134,6 +149,8 @@ export interface Report {
   createdAt: string;
   updatedAt: string;
   form?: Form;
+  project?: { id: string; name: string };
+  createdBy?: { id: string; name: string; email: string };
   elements?: ReportElement[];
   _count?: {
     elements: number;
@@ -163,6 +180,7 @@ export interface ReportGeneration {
   data: any;
   filters?: any;
   report?: Report;
+  project?: { id: string; name: string };
   user?: {
     id: string;
     name: string;
@@ -181,16 +199,24 @@ export interface CreateElementData {
 // Configs específicos por tipo de elemento
 export interface TextElementConfig {
   content: string;
-  fontSize?: 'sm' | 'base' | 'lg' | 'xl' | '2xl';
+  fontSize?: 'sm' | 'base' | 'lg' | 'xl' | '2xl' | number;
   fontWeight?: 'normal' | 'medium' | 'semibold' | 'bold';
   textAlign?: 'left' | 'center' | 'right' | 'justify';
+  align?: 'left' | 'center' | 'right' | 'justify';
   color?: string;
+  italic?: boolean;
+  underline?: boolean;
+  lineHeight?: string | number;
+  letterSpacing?: string | number;
+  padding?: string | number;
+  uppercase?: boolean;
 }
 
 export interface ChartElementConfig {
   chartType: ChartType;
   dataSource: 'submission' | 'manual';
   title?: string;
+  data?: any;
   datasets: {
     label: string;
     data: number[];
@@ -198,6 +224,12 @@ export interface ChartElementConfig {
     borderColor?: string | string[];
   }[];
   labels: string[];
+  showLegend?: boolean;
+  xAxisLabel?: string;
+  yAxisLabel?: string;
+  showGrid?: boolean;
+  width?: string | number;
+  height?: string | number;
   options?: any;
 }
 
@@ -207,10 +239,20 @@ export interface TableElementConfig {
   showHeader?: boolean;
   bordered?: boolean;
   striped?: boolean;
+  headerBackground?: string;
+  headerColor?: string;
+  cellPadding?: string;
+  showBorders?: boolean;
+  headerFontSize?: string;
+  headerHeight?: string;
+  cellFontSize?: string;
+  cellHeight?: string;
+  alternateRows?: boolean;
 }
 
 export interface TableColumn {
   id: string;
+  key?: string;
   label: string;
   width?: string;
   align?: 'left' | 'center' | 'right';
@@ -222,19 +264,22 @@ export interface TableRow {
 }
 
 export interface TableCell {
-  columnId: string;
+  id?: string;
+  columnId?: string;
   value: string;
+  binding?: any;
   bold?: boolean;
   italic?: boolean;
   color?: string;
   backgroundColor?: string;
+  style?: any;
 }
 
 export interface ImageElementConfig {
   url: string;
   alt?: string;
-  width?: string;
-  height?: string;
+  width?: string | number;
+  height?: string | number;
   objectFit?: 'contain' | 'cover' | 'fill' | 'none';
   alignment?: 'left' | 'center' | 'right';
 }
@@ -253,17 +298,23 @@ export interface SignatureField {
   role?: string;
   date?: string;
   imageUrl?: string;
+  description?: string;
+  align?: 'left' | 'center' | 'right';
+  responsibleName?: string;
+  lineWidth?: string | number;
+  lineColor?: string;
+  showDate?: boolean;
 }
 
 export interface DividerElementConfig {
   style?: 'solid' | 'dashed' | 'dotted';
-  thickness?: 'thin' | 'medium' | 'thick';
+  thickness?: 'thin' | 'medium' | 'thick' | number;
   color?: string;
   spacing?: 'sm' | 'md' | 'lg';
 }
 
 export interface SpacerElementConfig {
-  height: 'sm' | 'md' | 'lg' | 'xl';
+  height: 'sm' | 'md' | 'lg' | 'xl' | number;
 }
 
 

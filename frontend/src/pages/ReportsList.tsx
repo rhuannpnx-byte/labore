@@ -9,13 +9,13 @@ import { useProjectContext } from '../services/project-context';
 
 const statusColors: Record<ReportStatus, string> = {
   DRAFT: 'bg-yellow-100 text-yellow-800',
-  ACTIVE: 'bg-green-100 text-green-800',
+  PUBLISHED: 'bg-green-100 text-green-800',
   ARCHIVED: 'bg-gray-100 text-gray-800',
 };
 
 const statusLabels: Record<ReportStatus, string> = {
   DRAFT: 'Rascunho',
-  ACTIVE: 'Ativo',
+  PUBLISHED: 'Publicado',
   ARCHIVED: 'Arquivado',
 };
 
@@ -112,8 +112,8 @@ export const ReportsList: React.FC = () => {
           Rascunhos
         </Button>
         <Button
-          variant={statusFilter === 'ACTIVE' ? 'primary' : 'outline'}
-          onClick={() => setStatusFilter('ACTIVE')}
+          variant={statusFilter === 'PUBLISHED' ? 'primary' : 'outline'}
+          onClick={() => setStatusFilter('PUBLISHED')}
           size="sm"
         >
           Ativos
@@ -165,7 +165,7 @@ export const ReportsList: React.FC = () => {
                 </h3>
                 <Badge 
                   variant={
-                    report.status === 'ACTIVE' ? 'success' : 
+                    report.status === 'PUBLISHED' ? 'success' : 
                     report.status === 'DRAFT' ? 'warning' : 'secondary'
                   }
                 >
