@@ -155,7 +155,7 @@ export default function PendingSubmissionsList() {
                       
                       {submission.attempts > 0 && (
                         <Badge 
-                          variant={submission.attempts >= 3 ? 'destructive' : 'warning'}
+                          variant={submission.attempts >= 3 ? 'danger' : 'warning'}
                           size="sm"
                         >
                           {submission.attempts} {submission.attempts === 1 ? 'tentativa' : 'tentativas'}
