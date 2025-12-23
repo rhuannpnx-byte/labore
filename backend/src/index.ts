@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, UserRole } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import { formRoutes } from './routes/form.routes';
 import { submissionRoutes } from './routes/submission.routes';
@@ -59,28 +59,28 @@ app.post('/api/seed', async (req, res) => {
         email: 'rhuann.nunes@tecpav.com',
         password: await bcrypt.hash('Rh021197@', 10),
         name: 'Rhuann Nunes',
-        role: 'SUPERADMIN',
-        companyId: null
+        role: UserRole.SUPERADMIN,
+        companyId: undefined
       },
       {
         email: 'admin@tecpav.com',
         password: await bcrypt.hash('admin123', 10),
         name: 'Administrador TECPAV',
-        role: 'ADMIN',
+        role: UserRole.ADMIN,
         companyId: company.id
       },
       {
         email: 'engenheiro@tecpav.com',
         password: await bcrypt.hash('eng123', 10),
         name: 'João Engenheiro',
-        role: 'ENGENHEIRO',
+        role: UserRole.ENGENHEIRO,
         companyId: company.id
       },
       {
         email: 'laboratorista@tecpav.com',
         password: await bcrypt.hash('lab123', 10),
         name: 'Maria Laboratorista',
-        role: 'LABORATORISTA',
+        role: UserRole.LABORATORISTA,
         companyId: company.id
       }
     ];
