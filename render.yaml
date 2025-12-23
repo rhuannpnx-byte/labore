@@ -16,7 +16,23 @@ services:
       - key: JWT_SECRET
         sync: false
       - key: JWT_EXPIRES_IN
-        value: 7d
+        value: 365d
+      - key: NODE_ENV
+        value: production
+
+  - type: web
+    name: labore-frontend
+    env: node
+    plan: free
+    region: oregon
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 22.16.0
+      - key: VITE_API_URL
+        value: https://labore-api.onrender.com/api
       - key: NODE_ENV
         value: production
 
