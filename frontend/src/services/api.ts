@@ -12,7 +12,7 @@ import { syncService } from './sync';
 import { authService } from './auth';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://labore-api.onrender.com/api',
+  baseURL: (import.meta as any).env?.VITE_API_URL || 'https://labore-api.onrender.com/api',
 });
 
 // Interceptor para adicionar token de autenticação
