@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 
 // Configurações
 const JWT_SECRET = process.env.JWT_SECRET || 'sua-chave-secreta-super-segura-mude-em-producao';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '365d'; // 1 ano - expira apenas com logout ativo
 const SALT_ROUNDS = 10;
 
 // Interface do payload do JWT
