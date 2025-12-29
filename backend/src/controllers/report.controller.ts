@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
+// Force reload for Prisma Client update
 
 // Listar todos os relatórios (com filtros opcionais)
 export const listReports = async (req: Request, res: Response) => {

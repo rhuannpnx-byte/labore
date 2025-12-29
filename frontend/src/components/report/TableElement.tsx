@@ -141,15 +141,16 @@ export const TableElement: React.FC<TableElementProps> = ({
 
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">
-                📐 Altura do Cabeçalho
+                📐 Altura do Cabeçalho (px)
               </label>
               <input
                 type="number"
                 value={config.headerHeight || 40}
                 onChange={(e) => onChange?.({ ...config, headerHeight: parseInt(e.target.value) || 40 })}
                 className="w-full px-2 py-1.5 text-sm border rounded"
-                min="20"
-                max="100"
+                min="10"
+                max="150"
+                step="1"
               />
             </div>
 
@@ -162,22 +163,38 @@ export const TableElement: React.FC<TableElementProps> = ({
                 value={config.cellFontSize || 12}
                 onChange={(e) => onChange?.({ ...config, cellFontSize: parseInt(e.target.value) || 12 })}
                 className="w-full px-2 py-1.5 text-sm border rounded"
-                min="8"
-                max="20"
+                min="6"
+                max="24"
               />
             </div>
 
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">
-                📐 Altura das Células
+                📐 Altura das Células (px)
               </label>
               <input
                 type="number"
                 value={config.cellHeight || 35}
                 onChange={(e) => onChange?.({ ...config, cellHeight: parseInt(e.target.value) || 35 })}
                 className="w-full px-2 py-1.5 text-sm border rounded"
-                min="20"
-                max="80"
+                min="10"
+                max="150"
+                step="1"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                📦 Padding das Células (px)
+              </label>
+              <input
+                type="number"
+                value={parseInt(config.cellPadding as string) || 12}
+                onChange={(e) => onChange?.({ ...config, cellPadding: `${e.target.value}px` })}
+                className="w-full px-2 py-1.5 text-sm border rounded"
+                min="0"
+                max="30"
+                step="1"
               />
             </div>
           </div>
@@ -273,7 +290,7 @@ export const TableElement: React.FC<TableElementProps> = ({
                         onChange={(value) => updateCellValue(rowIndex, cellIndex, value)}
                         form={form}
                         placeholder="@ # ou valor"
-                        minHeight="38px"
+                        minHeight={`${(config.cellHeight || 35) - 10}px`}
                         className="text-sm"
                         inline={true}
                       />

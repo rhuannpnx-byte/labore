@@ -350,9 +350,13 @@ model ReportElement {
 }
 
 enum ReportElementType {
-  CHART
-  TABLE
   TEXT
+  TABLE
+  CHART
+  IMAGE
+  DIVIDER
+  SPACER
+  SIGNATURE
   METRIC
   CUSTOM
 }
