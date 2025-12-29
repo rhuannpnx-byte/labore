@@ -290,7 +290,7 @@ export const TableElement: React.FC<TableElementProps> = ({
                         onChange={(value) => updateCellValue(rowIndex, cellIndex, value)}
                         form={form}
                         placeholder="@ # ou valor"
-                        minHeight={`${(config.cellHeight || 35) - 10}px`}
+                        minHeight={`${Number(config.cellHeight || 35) - 10}px`}
                         className="text-sm"
                         inline={true}
                       />
