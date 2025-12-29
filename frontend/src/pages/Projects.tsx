@@ -12,6 +12,7 @@ interface Project {
   id: string;
   name: string;
   code?: string;
+  client?: string;
   address?: string;
   description?: string;
   status: string;
@@ -40,6 +41,7 @@ export default function Projects() {
   const [formData, setFormData] = useState({
     name: '',
     code: '',
+    client: '',
     address: '',
     description: '',
     status: 'ACTIVE',
@@ -91,6 +93,7 @@ export default function Projects() {
     setFormData({
       name: project.name,
       code: project.code || '',
+      client: project.client || '',
       address: project.address || '',
       description: project.description || '',
       status: project.status,
@@ -113,6 +116,7 @@ export default function Projects() {
     setFormData({
       name: '',
       code: '',
+      client: '',
       address: '',
       description: '',
       status: 'ACTIVE',
@@ -200,6 +204,12 @@ export default function Projects() {
                     {project.code && (
                       <p className="text-sm text-gray-500 dark:text-gray-400 font-mono">
                         Código: {project.code}
+                      </p>
+                    )}
+                    {project.client && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1.5 mt-1">
+                        <Building2 className="w-3.5 h-3.5" />
+                        Cliente: {project.client}
                       </p>
                     )}
                   </div>
@@ -347,6 +357,13 @@ export default function Projects() {
             type="text"
             value={formData.code}
             onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+          />
+          <Input
+            label="Cliente"
+            type="text"
+            value={formData.client}
+            onChange={(e) => setFormData({ ...formData, client: e.target.value })}
+            icon={<Building2 size={20} />}
           />
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">

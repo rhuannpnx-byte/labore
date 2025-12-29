@@ -21,6 +21,7 @@ Digite `@` para acessar informações de cadastro:
 ```
 @{project.name}        - Nome da obra
 @{project.code}        - Código da obra
+@{project.client}      - Nome do cliente
 @{project.address}     - Endereço da obra
 @{company.name}        - Nome da empresa
 @{company.cnpj}        - CNPJ da empresa
@@ -69,6 +70,7 @@ Ao digitar `@` ou `#`, uma lista inteligente aparece com:
 
 Obra: @{project.name}
 Código: @{project.code}
+Cliente: @{project.client}
 Endereço: @{project.address}
 Empresa: @{company.name}
 

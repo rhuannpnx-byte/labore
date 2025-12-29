@@ -854,6 +854,7 @@ function processTextVariables(text: string, submissionData: any, projectData?: a
   if (projectData) {
     replaceVariable('project.name', projectData.name || '');
     replaceVariable('project.code', projectData.code || '');
+    replaceVariable('project.client', projectData.client || '');
     replaceVariable('project.address', projectData.address || '');
     replaceVariable('company.name', projectData.company?.name || '');
     replaceVariable('company.cnpj', projectData.company?.cnpj || '');

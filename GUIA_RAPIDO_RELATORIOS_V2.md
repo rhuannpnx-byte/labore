@@ -56,6 +56,7 @@ Digite `@` e veja:
 
 ```
 @{project.name}        ← Nome da Obra
+@{project.client}      ← Nome do Cliente
 @{company.name}        ← Nome da Empresa
 @{currentDate}         ← Data de Hoje
 ```
@@ -149,7 +150,8 @@ Data: 18/12/2024
 ### Top 5 Cadastros (@)
 ```
 1. @{project.name}       - Nome da Obra
-2. @{company.name}       - Nome da Empresa
+2. @{project.client}     - Nome do Cliente
+3. @{company.name}       - Nome da Empresa
 3. @{currentDate}        - Data de Hoje
 4. @{submittedBy.name}   - Quem Preencheu
 5. @{project.address}    - Endereço da Obra

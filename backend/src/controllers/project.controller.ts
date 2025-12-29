@@ -6,6 +6,7 @@ import { z } from 'zod';
 const createProjectSchema = z.object({
   name: z.string().min(1, 'Nome obrigatório'),
   code: z.string().optional(),
+  client: z.string().optional(),
   address: z.string().optional(),
   description: z.string().optional(),
   status: z.enum(['ACTIVE', 'PAUSED', 'COMPLETED', 'CANCELLED']).optional(),
@@ -18,6 +19,7 @@ const createProjectSchema = z.object({
 const updateProjectSchema = z.object({
   name: z.string().min(1).optional(),
   code: z.string().optional(),
+  client: z.string().optional(),
   address: z.string().optional(),
   description: z.string().optional(),
   status: z.enum(['ACTIVE', 'PAUSED', 'COMPLETED', 'CANCELLED']).optional(),

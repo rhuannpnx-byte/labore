@@ -5,6 +5,7 @@ interface Project {
   id: string;
   name: string;
   code?: string;
+  client?: string;
   status: string;
   companyId: string;
   company?: {

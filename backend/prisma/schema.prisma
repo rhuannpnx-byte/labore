@@ -37,6 +37,7 @@ model Project {
   id          String   @id @default(uuid())
   name        String
   code        String?  // Código/Identificador da obra
+  client      String?  // Nome do cliente da obra
   address     String?
   description String?
   status      ProjectStatus @default(ACTIVE)

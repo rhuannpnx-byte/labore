@@ -37,6 +37,7 @@ export const SmartTextEditor: React.FC<SmartTextEditorProps> = ({
   const cadastroSuggestions: Suggestion[] = [
     { type: '@', key: 'project.name', label: 'Nome da Obra', description: 'Nome do projeto/obra' },
     { type: '@', key: 'project.code', label: 'Código da Obra', description: 'Código/identificador do projeto' },
+    { type: '@', key: 'project.client', label: 'Nome do Cliente', description: 'Nome do cliente da obra' },
     { type: '@', key: 'project.address', label: 'Endereço da Obra', description: 'Endereço do projeto' },
     { type: '@', key: 'company.name', label: 'Nome da Empresa', description: 'Nome da empresa responsável' },
     { type: '@', key: 'company.cnpj', label: 'CNPJ da Empresa', description: 'CNPJ da empresa' },
