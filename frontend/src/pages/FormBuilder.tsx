@@ -28,8 +28,9 @@ export default function FormBuilder() {
   const [error, setError] = useState('');
   const [draggedFieldIndex, setDraggedFieldIndex] = useState<number | null>(null);
   
-  // Estados para novo campo
+  // Estados para campo (criar ou editar)
   const [showFieldForm, setShowFieldForm] = useState(false);
+  const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
   const [fieldLabel, setFieldLabel] = useState('');
   const [fieldKey, setFieldKey] = useState('');
   const [fieldType, setFieldType] = useState<FieldType>('TEXT');
@@ -141,6 +142,63 @@ export default function FormBuilder() {
       console.error('Erro ao remover campo:', err);
       alert(formatApiError(err));
     }
+  };
+  
+  const handleEditField = (field: FormField) => {
+    setEditingFieldId(field.id);
+    setFieldLabel(field.label);
+    setFieldKey(field.fieldKey);
+    setFieldType(field.type);
+    setFieldRequired(field.required);
+    setShowFieldForm(true);
+  };
+  
+  const handleSaveField = async () => {
+    if (!fieldLabel.trim()) {
+      alert('Digite um rótulo para o campo');
+      return;
+    }
+    
+    if (!fieldKey.trim()) {
+      alert('Digite uma chave para o campo');
+      return;
+    }
+    
+    try {
+      if (editingFieldId) {
+        // Atualizar campo existente
+        await formsApi.updateField(id!, editingFieldId, {
+          label: fieldLabel,
+          fieldKey: fieldKey,
+          type: fieldType,
+          required: fieldRequired,
+        });
+      } else {
+        // Criar novo campo
+        await formsApi.addField(id!, {
+          label: fieldLabel,
+          fieldKey: fieldKey,
+          type: fieldType,
+          required: fieldRequired,
+          order: fields.length
+        });
+      }
+      
+      handleCancelField();
+      loadForm();
+    } catch (err: any) {
+      console.error('Erro ao salvar campo:', err);
+      alert(formatApiError(err));
+    }
+  };
+  
+  const handleCancelField = () => {
+    setShowFieldForm(false);
+    setEditingFieldId(null);
+    setFieldLabel('');
+    setFieldKey('');
+    setFieldType('TEXT');
+    setFieldRequired(false);
   };
   
   const handleAddRule = async () => {
@@ -336,6 +394,18 @@ export default function FormBuilder() {
               <CardContent>
                 {showFieldForm && (
                   <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold text-gray-900">
+                        {editingFieldId ? 'Editando Campo' : 'Novo Campo'}
+                      </h4>
+                      <button
+                        onClick={handleCancelField}
+                        className="p-1 text-gray-500 hover:text-gray-700"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    
                     <Input
                       label="Nome do Campo"
                       value={fieldLabel}
@@ -344,13 +414,23 @@ export default function FormBuilder() {
                       size={"sm" as any}
                     />
                     
-                    <Input
-                      label="Chave (identificador único)"
-                      value={fieldKey}
-                      onChange={(e) => setFieldKey(e.target.value)}
-                      placeholder="Ex: resistencia_concreto"
-                      size={"sm" as any}
-                    />
+                    <div>
+                      <Input
+                        label="Chave (identificador único)"
+                        value={fieldKey}
+                        onChange={(e) => setFieldKey(e.target.value)}
+                        placeholder="Ex: resistencia_concreto"
+                        size={"sm" as any}
+                      />
+                      {editingFieldId && (
+                        <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded flex items-start gap-2">
+                          <AlertCircle className="w-4 h-4 text-yellow-600 flex-shrink-0 mt-0.5" />
+                          <p className="text-xs text-yellow-800">
+                            <strong>Atenção:</strong> Alterar a chave pode afetar fórmulas e dados existentes que a referenciam.
+                          </p>
+                        </div>
+                      )}
+                    </div>
                     
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -381,10 +461,10 @@ export default function FormBuilder() {
                     </label>
                     
                     <div className="flex gap-2 pt-2">
-                      <Button onClick={handleAddField} variant="primary" size="sm" fullWidth>
-                        Adicionar Campo
+                      <Button onClick={handleSaveField} variant="primary" size="sm" fullWidth>
+                        {editingFieldId ? 'Salvar Alterações' : 'Adicionar Campo'}
                       </Button>
-                      <Button onClick={() => setShowFieldForm(false)} variant="ghost" size="sm">
+                      <Button onClick={handleCancelField} variant="ghost" size="sm">
                         Cancelar
                       </Button>
                     </div>
@@ -428,12 +508,28 @@ export default function FormBuilder() {
                                 <span className="text-xs text-gray-500">← Use esta chave nas fórmulas</span>
                               </div>
                             </div>
-                            <button
-                              onClick={() => handleDeleteField(field.id)}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            <div className="flex gap-1 flex-shrink-0">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditField(field);
+                                }}
+                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                title="Editar campo"
+                              >
+                                <Settings className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteField(field.id);
+                                }}
+                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Excluir campo"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
