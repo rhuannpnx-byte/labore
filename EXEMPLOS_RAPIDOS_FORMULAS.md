@@ -596,3 +596,4 @@ semaforo = IFS(
 **💡 Dica:** Salve este arquivo como referência rápida! Copie e cole os exemplos diretamente no FormBuilder.
 
 
+

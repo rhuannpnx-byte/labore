@@ -157,7 +157,7 @@ export const ReportsList: React.FC = () => {
             <Card
               key={report.id}
               className="p-5 sm:p-6 hover:shadow-lg transition-all cursor-pointer"
-              onClick={() => navigate(`/reports/${report.id}`)}
+              onClick={() => navigate(`/reports/${report.id}/edit`)}
             >
               <div className="flex items-start justify-between gap-2 mb-3">
                 <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 flex-1">

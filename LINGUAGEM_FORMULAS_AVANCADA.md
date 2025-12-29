@@ -835,3 +835,4 @@ Esta linguagem de fórmulas oferece poder e flexibilidade para criar cálculos c
 **Versão:** 2.0 - Linguagem Avançada
 
 
+

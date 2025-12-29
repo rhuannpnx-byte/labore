@@ -104,7 +104,7 @@ export const ReportBuilder: React.FC = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [formId, setFormId] = useState('');
-  const [status, setStatus] = useState<'DRAFT' | 'ACTIVE' | 'ARCHIVED'>('DRAFT');
+  const [status, setStatus] = useState<'DRAFT' | 'PUBLISHED' | 'ARCHIVED'>('DRAFT');
 
   useEffect(() => {
     loadForms();
@@ -413,7 +413,7 @@ export const ReportBuilder: React.FC = () => {
               className="w-full px-3 py-2 border rounded-lg"
             >
               <option value="DRAFT">Rascunho</option>
-              <option value="ACTIVE">Ativo</option>
+              <option value="PUBLISHED">Ativo</option>
               <option value="ARCHIVED">Arquivado</option>
             </select>
           </div>

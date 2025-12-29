@@ -14,9 +14,9 @@ export const listReports = async (req: Request, res: Response) => {
       where.projectId = projectId as string;
     }
 
-    // Filtro por status
+    // Filtro por status - converter 'ACTIVE' para 'PUBLISHED' (compatibilidade)
     if (status) {
-      where.status = status;
+      where.status = status === 'ACTIVE' ? 'PUBLISHED' : status;
     }
 
     // Se não for SUPERADMIN, filtrar por empresa
@@ -172,13 +172,16 @@ export const createReport = async (req: Request, res: Response) => {
       }
     }
 
+    // Converter 'ACTIVE' para 'PUBLISHED' (compatibilidade)
+    const normalizedStatus = status === 'ACTIVE' ? 'PUBLISHED' : (status || 'DRAFT');
+
     const report = await prisma.report.create({
       data: {
         title,
         description,
         formId,
         projectId: projectId || null,
-        status: status || 'DRAFT',
+        status: normalizedStatus,
         createdById: user.userId
       },
       include: {
@@ -233,6 +236,11 @@ export const updateReport = async (req: Request, res: Response) => {
       }
     }
 
+    // Converter 'ACTIVE' para 'PUBLISHED' (compatibilidade)
+    const normalizedStatus = status 
+      ? (status === 'ACTIVE' ? 'PUBLISHED' : status)
+      : existingReport.status;
+
     const report = await prisma.report.update({
       where: { id },
       data: {
@@ -240,7 +248,7 @@ export const updateReport = async (req: Request, res: Response) => {
         description,
         formId: formId || existingReport.formId,
         projectId: projectId !== undefined ? projectId : existingReport.projectId,
-        status: status || existingReport.status
+        status: normalizedStatus
       },
       include: {
         createdBy: {

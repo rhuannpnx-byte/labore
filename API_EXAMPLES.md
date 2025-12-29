@@ -526,3 +526,4 @@ curl -X POST http://localhost:3000/api/submissions \
 5. **Status ACTIVE** é necessário para aceitar submissões
 
 
+
