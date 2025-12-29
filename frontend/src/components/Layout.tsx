@@ -32,6 +32,19 @@ export default function Layout() {
     loadUser();
   }, []);
 
+  // Close menus on ESC key press
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsUserMenuOpen(false);
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, []);
+
   const handleLogout = () => {
     authService.logout();
     window.location.href = '/login';
@@ -63,6 +76,17 @@ export default function Layout() {
   
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+      {/* Overlay for dropdown menus */}
+      {(isUserMenuOpen || isMobileMenuOpen) && (
+        <div 
+          className="fixed inset-0 z-[100] bg-transparent" 
+          onClick={() => {
+            setIsUserMenuOpen(false);
+            setIsMobileMenuOpen(false);
+          }} 
+        />
+      )}
+      
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 print:hidden sticky top-0 z-30 backdrop-blur-sm bg-white/95 dark:bg-gray-800/95">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -109,13 +133,7 @@ export default function Layout() {
                 </Button>
 
                 {isUserMenuOpen && (
-                  <>
-                    <div 
-                      className="fixed inset-0 z-40" 
-                      onClick={() => setIsUserMenuOpen(false)} 
-                    />
-                    
-                    <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
+                    <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-[110]">
                       <div className="p-4 border-b border-gray-100 dark:border-gray-700">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white text-lg font-semibold">
@@ -180,7 +198,6 @@ export default function Layout() {
                         </Button>
                       </div>
                     </div>
-                  </>
                 )}
               </div>
             </nav>
@@ -198,67 +215,67 @@ export default function Layout() {
 
           {/* Mobile Menu */}
           {isMobileMenuOpen && (
-            <div className="md:hidden border-t border-gray-200 dark:border-gray-700 py-4 space-y-2">
-              {pendingCount > 0 && (
-                <Link to="/pending-submissions" onClick={() => setIsMobileMenuOpen(false)}>
+              <div className="relative z-[110] md:hidden border-t border-gray-200 dark:border-gray-700 py-4 space-y-2">
+                {pendingCount > 0 && (
+                  <Link to="/pending-submissions" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button
+                      variant={isActive('/pending-submissions') ? 'warning' : 'ghost'}
+                      size="sm"
+                      icon={<Clock size={16} />}
+                      fullWidth
+                      className="justify-start"
+                    >
+                      Pendentes
+                      <Badge variant="warning" size="sm">
+                        {pendingCount}
+                      </Badge>
+                    </Button>
+                  </Link>
+                )}
+
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
+                  <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg mb-2">
+                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+                      OBRA ATIVA
+                    </p>
+                    <ProjectSelector />
+                  </div>
                   <Button
-                    variant={isActive('/pending-submissions') ? 'warning' : 'ghost'}
+                    onClick={toggleTheme}
+                    variant="ghost"
                     size="sm"
-                    icon={<Clock size={16} />}
+                    icon={theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
                     fullWidth
                     className="justify-start"
                   >
-                    Pendentes
-                    <Badge variant="warning" size="sm">
-                      {pendingCount}
-                    </Badge>
+                    {theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
                   </Button>
-                </Link>
-              )}
-
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
-                <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg mb-2">
-                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
-                    OBRA ATIVA
-                  </p>
-                  <ProjectSelector />
-                </div>
-                <Button
-                  onClick={toggleTheme}
-                  variant="ghost"
-                  size="sm"
-                  icon={theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-                  fullWidth
-                  className="justify-start"
-                >
-                  {theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
-                </Button>
-                <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    icon={<Settings size={16} />} 
-                    fullWidth 
+                  <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      icon={<Settings size={16} />} 
+                      fullWidth 
+                      className="justify-start mt-1"
+                    >
+                      Configurações
+                    </Button>
+                  </Link>
+                  <Button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      handleLogout();
+                    }}
+                    variant="danger"
+                    size="sm"
+                    icon={<LogOut size={16} />}
+                    fullWidth
                     className="justify-start mt-1"
                   >
-                    Configurações
+                    Sair
                   </Button>
-                </Link>
-                <Button
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    handleLogout();
-                  }}
-                  variant="danger"
-                  size="sm"
-                  icon={<LogOut size={16} />}
-                  fullWidth
-                  className="justify-start mt-1"
-                >
-                  Sair
-                </Button>
+                </div>
               </div>
-            </div>
           )}
         </div>
       </header>
