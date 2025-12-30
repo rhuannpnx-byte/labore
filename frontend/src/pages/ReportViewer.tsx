@@ -112,7 +112,7 @@ export const ReportViewer: React.FC = () => {
   const left = margins.left !== undefined ? margins.left : 20;
   
   // Logo do projeto (tentar pegar dos metadados ou do projeto da geração)
-  const projectLogo = metadata.project?.logo || generation.project?.logo;
+  const projectLogo = (metadata.project as any)?.logo || (generation.project as any)?.logo;
   const showLogo = pageSettings.showProjectLogo === true && projectLogo;
 
   return (
