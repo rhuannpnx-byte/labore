@@ -922,6 +922,12 @@ function processTextVariables(text: string, submissionData: any, projectData?: a
   replaceVariable('currentDate', new Date().toLocaleDateString('pt-BR'));
   replaceVariable('currentDateTime', new Date().toLocaleString('pt-BR'));
 
+  // Remover qualquer variável não substituída (#{...}, @{...}, {{...}})
+  // Isso garante que campos vazios ou inexistentes apareçam como string vazia
+  content = content.replace(/\{\{[^}]+\}\}/g, '');  // Remove {{variavel}}
+  content = content.replace(/@\{[^}]+\}/g, '');     // Remove @{variavel}
+  content = content.replace(/#\{[^}]+\}/g, '');     // Remove #{variavel}
+
   return content;
 }
 
