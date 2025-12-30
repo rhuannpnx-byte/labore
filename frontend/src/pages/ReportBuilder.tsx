@@ -637,9 +637,8 @@ export const ReportBuilder: React.FC = () => {
                               </Button>
                               <Button
                                 size="sm"
-                                variant="outline"
+                                variant={isEditing ? 'primary' : 'outline'}
                                 onClick={() => setEditingElement(isEditing ? null : element.id)}
-                                className={isEditing ? 'bg-blue-600 text-white hover:bg-blue-700' : ''}
                               >
                                 {isEditing ? '✓ Fechar' : '✏️ Editar'}
                               </Button>

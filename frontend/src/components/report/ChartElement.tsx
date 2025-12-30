@@ -105,7 +105,7 @@ export const ChartElement: React.FC<ChartElementProps> = ({
         data: processedData,
         options: {
           responsive: true,
-          maintainAspectRatio: true,
+          maintainAspectRatio: !config.height, // Se height definida, não manter aspect ratio
           plugins: {
             legend: {
               display: config.showLegend !== false,
@@ -389,35 +389,60 @@ export const ChartElement: React.FC<ChartElementProps> = ({
         )}
 
         {/* Opções */}
-        <div className="flex gap-4">
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={config.showLegend !== false}
-              onChange={(e) => onChange?.({ ...config, showLegend: e.target.checked })}
-              className="rounded"
-            />
-            <span className="text-sm">Mostrar legenda</span>
-          </label>
-
-          {config.chartType !== 'pie' && config.chartType !== 'doughnut' && (
+        <div className="space-y-3">
+          <div className="flex gap-4">
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"
-                checked={config.showGrid !== false}
-                onChange={(e) => onChange?.({ ...config, showGrid: e.target.checked })}
+                checked={config.showLegend !== false}
+                onChange={(e) => onChange?.({ ...config, showLegend: e.target.checked })}
                 className="rounded"
               />
-              <span className="text-sm">Mostrar grade</span>
+              <span className="text-sm">Mostrar legenda</span>
             </label>
-          )}
+
+            {config.chartType !== 'pie' && config.chartType !== 'doughnut' && (
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={config.showGrid !== false}
+                  onChange={(e) => onChange?.({ ...config, showGrid: e.target.checked })}
+                  className="rounded"
+                />
+                <span className="text-sm">Mostrar grade</span>
+              </label>
+            )}
+          </div>
+
+          {/* Controle de altura */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              📐 Altura do Gráfico (px)
+            </label>
+            <input
+              type="number"
+              value={config.height || 300}
+              onChange={(e) => onChange?.({ ...config, height: parseInt(e.target.value) || 300 })}
+              className="w-full max-w-xs px-3 py-2 border rounded-lg text-sm"
+              min="100"
+              max="800"
+              step="50"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Altura recomendada: 300px - 400px
+            </p>
+          </div>
         </div>
 
         {/* Preview do gráfico */}
         {config.data && (
           <div className="border rounded-lg p-4 bg-white">
             <p className="text-sm font-medium text-gray-700 mb-3">Preview:</p>
-            <div style={{ maxWidth: 600, margin: '0 auto' }}>
+            <div style={{ 
+              maxWidth: 600, 
+              margin: '0 auto',
+              height: config.height ? `${config.height}px` : 'auto'
+            }}>
               <canvas ref={canvasRef}></canvas>
             </div>
           </div>
@@ -442,7 +467,11 @@ export const ChartElement: React.FC<ChartElementProps> = ({
   }
 
   return (
-    <div style={{ maxWidth: config.width || '100%', height: config.height || 'auto', ...style }}>
+    <div style={{ 
+      maxWidth: config.width || '100%', 
+      height: config.height ? `${config.height}px` : 'auto', 
+      ...style 
+    }}>
       <canvas ref={canvasRef}></canvas>
     </div>
   );
