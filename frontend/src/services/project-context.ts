@@ -6,6 +6,7 @@ interface Project {
   name: string;
   code?: string;
   client?: string;
+  logo?: string;
   status: string;
   companyId: string;
   company?: {

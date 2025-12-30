@@ -10,6 +10,8 @@ interface PageMargins {
 interface A4PreviewWithPageBreaksProps {
   children: React.ReactNode;
   margins?: PageMargins;
+  showProjectLogo?: boolean;
+  projectLogo?: string;
 }
 
 /**
@@ -18,11 +20,14 @@ interface A4PreviewWithPageBreaksProps {
 export const A4PreviewWithPageBreaks: React.FC<A4PreviewWithPageBreaksProps> = ({
   children,
   margins = { top: 20, right: 20, bottom: 20, left: 20 },
+  showProjectLogo = false,
+  projectLogo,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [pageBreaks, setPageBreaks] = useState<number[]>([]);
 
   const { top = 20, right = 20, bottom = 20, left = 20 } = margins;
+  const showLogo = showProjectLogo && projectLogo;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -64,7 +69,35 @@ export const A4PreviewWithPageBreaks: React.FC<A4PreviewWithPageBreaksProps> = (
           position: 'relative',
         }}
       >
-        {children}
+        {/* Logo da obra (se habilitada) */}
+        {showLogo && (
+          <div 
+            style={{
+              position: 'absolute',
+              top: `${top}mm`,
+              left: `${left}mm`,
+              maxWidth: '120px',
+              maxHeight: '90px',
+              zIndex: 10,
+            }}
+          >
+            <img 
+              src={projectLogo} 
+              alt="Logo da obra"
+              style={{
+                maxWidth: '100%',
+                maxHeight: '100%',
+                objectFit: 'contain',
+                display: 'block',
+              }}
+            />
+          </div>
+        )}
+
+        {/* Conteúdo */}
+        <div>
+          {children}
+        </div>
 
         {/* Indicadores de quebra de página */}
         {pageBreaks.map((breakPosition, index) => (

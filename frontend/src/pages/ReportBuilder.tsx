@@ -7,6 +7,7 @@ import { Card } from '../components/ui/Card';
 import { Modal } from '../components/ui/Modal';
 import {
   TextElement,
+  TitleElement,
   TableElement,
   ChartElement,
   ImageElement,
@@ -20,6 +21,7 @@ import { useProjectContext } from '../services/project-context';
 
 const elementIcons: Record<ElementType, string> = {
   TEXT: '📝',
+  TITLE: '📌',
   TABLE: '📊',
   CHART: '📈',
   IMAGE: '🖼️',
@@ -30,6 +32,7 @@ const elementIcons: Record<ElementType, string> = {
 
 const elementLabels: Record<ElementType, string> = {
   TEXT: 'Texto',
+  TITLE: 'Título',
   TABLE: 'Tabela',
   CHART: 'Gráfico',
   IMAGE: 'Imagem',
@@ -40,6 +43,7 @@ const elementLabels: Record<ElementType, string> = {
 
 const defaultConfigs: Record<ElementType, any> = {
   TEXT: { content: '', fontSize: 16, color: '#000000', align: 'left' },
+  TITLE: { content: 'Título do Relatório', fontSize: 24, fontWeight: 'bold', color: '#000000', align: 'center' },
   TABLE: { 
     columns: [
       { id: 'col1', label: 'Coluna 1', key: 'col1', width: '100px', align: 'left' },
@@ -122,6 +126,7 @@ export const ReportBuilder: React.FC = () => {
       loadForm();
     }
   }, [formId]);
+
 
   const loadForms = async () => {
     try {
@@ -217,14 +222,37 @@ export const ReportBuilder: React.FC = () => {
     }
 
     try {
+      // Se for um título, inserir no topo (após outros títulos)
+      let insertOrder = elements.length;
+      if (type === 'TITLE') {
+        // Encontrar o índice do último título
+        const lastTitleIndex = elements.findLastIndex(el => el.type === 'TITLE');
+        insertOrder = lastTitleIndex >= 0 ? lastTitleIndex + 1 : 0;
+      }
+
       const newElementData: CreateElementData = {
         type,
         config: defaultConfigs[type],
-        order: elements.length,
+        order: insertOrder,
       };
 
       const response = await reportsApi.addElement(id, newElementData);
-      setElements([...elements, response.data]);
+      
+      // Inserir na posição correta
+      const newElements = [...elements];
+      newElements.splice(insertOrder, 0, response.data);
+      
+      // Reordenar todos os elementos
+      const reorderedElements = newElements.map((el, idx) => ({ ...el, order: idx }));
+      
+      // Atualizar ordens no backend
+      await Promise.all(
+        reorderedElements.map((el) =>
+          reportsApi.updateElement(el.id, { order: el.order })
+        )
+      );
+      
+      setElements(reorderedElements);
       setShowAddMenu(false);
       setEditingElement(response.data.id);
     } catch (err: any) {
@@ -261,6 +289,9 @@ export const ReportBuilder: React.FC = () => {
 
   const handleMoveElement = async (elementId: string, direction: 'up' | 'down') => {
     const index = elements.findIndex(el => el.id === elementId);
+    const element = elements[index];
+    
+    // Prevenir movimentos inválidos
     if (
       (direction === 'up' && index === 0) ||
       (direction === 'down' && index === elements.length - 1)
@@ -268,7 +299,21 @@ export const ReportBuilder: React.FC = () => {
       return;
     }
 
+    // Títulos não podem ser movidos para baixo
+    if (element.type === 'TITLE' && direction === 'down') {
+      alert('Títulos devem sempre ficar no topo do relatório e não podem ser movidos para baixo.');
+      return;
+    }
+
     const newIndex = direction === 'up' ? index - 1 : index + 1;
+    const targetElement = elements[newIndex];
+
+    // Elementos não-título não podem ser movidos acima de títulos
+    if (element.type !== 'TITLE' && targetElement.type === 'TITLE' && direction === 'up') {
+      alert('Elementos não podem ser movidos acima dos títulos.');
+      return;
+    }
+
     const newElements = [...elements];
     [newElements[index], newElements[newIndex]] = [newElements[newIndex], newElements[index]];
 
@@ -297,6 +342,8 @@ export const ReportBuilder: React.FC = () => {
     switch (element.type) {
       case 'TEXT':
         return <TextElement {...commonProps} />;
+      case 'TITLE':
+        return <TitleElement {...commonProps} />;
       case 'TABLE':
         return <TableElement {...commonProps} />;
       case 'CHART':
@@ -501,7 +548,7 @@ export const ReportBuilder: React.FC = () => {
               </div>
             </div>
 
-            <div className="mt-3">
+            <div className="mt-3 space-y-2">
               <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -513,6 +560,19 @@ export const ReportBuilder: React.FC = () => {
                   className="rounded"
                 />
                 <span className="text-sm text-gray-700">Mostrar números de página</span>
+              </label>
+              
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={pageSettings.showProjectLogo === true}
+                  onChange={(e) => setPageSettings({
+                    ...pageSettings,
+                    showProjectLogo: e.target.checked
+                  })}
+                  className="rounded"
+                />
+                <span className="text-sm text-gray-700">Mostrar logo da obra no canto superior esquerdo</span>
               </label>
             </div>
           </div>
@@ -598,6 +658,8 @@ export const ReportBuilder: React.FC = () => {
                         className={`border rounded-lg transition-all ${
                           isEditing 
                             ? 'border-blue-500 bg-blue-50 shadow-md' 
+                            : element.type === 'TITLE'
+                            ? 'border-purple-300 bg-purple-50/30 hover:border-purple-400'
                             : 'border-gray-200 bg-white hover:border-gray-300'
                         }`}
                       >
@@ -607,9 +669,16 @@ export const ReportBuilder: React.FC = () => {
                             <div className="flex items-center gap-3">
                               <span className="text-2xl">{elementIcons[element.type]}</span>
                               <div>
-                                <span className="font-medium text-gray-900">
-                                  {elementLabels[element.type]}
-                                </span>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-gray-900">
+                                    {elementLabels[element.type]}
+                                  </span>
+                                  {element.type === 'TITLE' && (
+                                    <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full font-medium">
+                                      📌 Fixo no topo
+                                    </span>
+                                  )}
+                                </div>
                                 <p className="text-xs text-gray-500 mt-0.5">
                                   Posição: {index + 1}
                                 </p>
@@ -621,8 +690,15 @@ export const ReportBuilder: React.FC = () => {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleMoveElement(element.id, 'up')}
-                                disabled={index === 0}
-                                title="Mover para cima"
+                                disabled={
+                                  index === 0 || 
+                                  (element.type !== 'TITLE' && index > 0 && elements[index - 1].type === 'TITLE')
+                                }
+                                title={
+                                  element.type !== 'TITLE' && index > 0 && elements[index - 1].type === 'TITLE'
+                                    ? 'Não pode mover acima de títulos'
+                                    : 'Mover para cima'
+                                }
                               >
                                 ↑
                               </Button>
@@ -630,8 +706,12 @@ export const ReportBuilder: React.FC = () => {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleMoveElement(element.id, 'down')}
-                                disabled={index === elements.length - 1}
-                                title="Mover para baixo"
+                                disabled={index === elements.length - 1 || element.type === 'TITLE'}
+                                title={
+                                  element.type === 'TITLE'
+                                    ? 'Títulos devem ficar no topo'
+                                    : 'Mover para baixo'
+                                }
                               >
                                 ↓
                               </Button>
@@ -761,13 +841,19 @@ export const ReportBuilder: React.FC = () => {
                 </div>
               ) : (
                 <A4Container showGrid={false}>
-                  <A4PreviewWithPageBreaks margins={pageSettings.margins}>
+                  <A4PreviewWithPageBreaks 
+                    margins={pageSettings.margins}
+                    showProjectLogo={pageSettings.showProjectLogo}
+                    projectLogo={selectedProject?.logo}
+                  >
                     <div>
                       {elements.map((element) => (
                         <div 
                           key={element.id} 
                           className="report-element"
-                          style={{ marginBottom: element.style?.marginBottom || '24px' }}
+                          style={{ 
+                            marginBottom: element.style?.marginBottom || '24px',
+                          }}
                         >
                           {renderElement(element, false)}
                         </div>

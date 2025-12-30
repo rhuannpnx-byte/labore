@@ -9,6 +9,7 @@ interface Project {
   name: string;
   code?: string;
   client?: string;
+  logo?: string;
   status: string;
   company?: {
     name: string;

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '../services/api-client';
 import { authService } from '../services/auth';
-import { FolderKanban, Plus, Edit2, Trash2, Users as UsersIcon, MapPin, Building2, FileText } from 'lucide-react';
+import { FolderKanban, Plus, Edit2, Trash2, Users as UsersIcon, MapPin, Building2, FileText, Image as ImageIcon, X } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -13,6 +13,7 @@ interface Project {
   name: string;
   code?: string;
   client?: string;
+  logo?: string;
   address?: string;
   description?: string;
   status: string;
@@ -42,6 +43,7 @@ export default function Projects() {
     name: '',
     code: '',
     client: '',
+    logo: '',
     address: '',
     description: '',
     status: 'ACTIVE',
@@ -94,6 +96,7 @@ export default function Projects() {
       name: project.name,
       code: project.code || '',
       client: project.client || '',
+      logo: project.logo || '',
       address: project.address || '',
       description: project.description || '',
       status: project.status,
@@ -117,6 +120,7 @@ export default function Projects() {
       name: '',
       code: '',
       client: '',
+      logo: '',
       address: '',
       description: '',
       status: 'ACTIVE',
@@ -365,6 +369,65 @@ export default function Projects() {
             onChange={(e) => setFormData({ ...formData, client: e.target.value })}
             icon={<Building2 size={20} />}
           />
+          
+          {/* Upload de Logo */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Logo da Obra
+            </label>
+            <div className="space-y-3">
+              {formData.logo && (
+                <div className="relative inline-block">
+                  <img 
+                    src={formData.logo} 
+                    alt="Logo preview" 
+                    className="h-24 w-auto rounded-lg border-2 border-gray-300 dark:border-gray-600 object-contain bg-white dark:bg-gray-800"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, logo: '' })}
+                    className="absolute -top-2 -right-2 p-1 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors"
+                    title="Remover logo"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg cursor-pointer transition-colors border border-gray-300 dark:border-gray-600">
+                  <ImageIcon size={18} />
+                  <span className="text-sm font-medium">
+                    {formData.logo ? 'Trocar Logo' : 'Escolher Logo'}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        // Validar tamanho (max 2MB)
+                        if (file.size > 2 * 1024 * 1024) {
+                          alert('A imagem deve ter no máximo 2MB');
+                          return;
+                        }
+                        // Converter para base64
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setFormData({ ...formData, logo: reader.result as string });
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
+                </label>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  PNG, JPG ou JPEG (max 2MB)
+                </p>
+              </div>
+            </div>
+          </div>
+          
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
               Status

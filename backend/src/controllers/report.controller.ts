@@ -539,6 +539,7 @@ export const generateReport = async (req: Request, res: Response) => {
               id: projectData.id,
               name: projectData.name,
               code: projectData.code,
+              logo: projectData.logo,
               company: projectData.company?.name
             } : null
           }

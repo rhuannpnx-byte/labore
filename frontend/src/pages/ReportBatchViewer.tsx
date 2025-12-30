@@ -7,6 +7,7 @@ import { Card } from '../components/ui/Card';
 import { A4Container } from '../components/report/A4Page';
 import {
   TextElement,
+  TitleElement,
   TableElement,
   ChartElement,
   ImageElement,
@@ -60,6 +61,8 @@ export const ReportBatchViewer: React.FC = () => {
     switch (element.type) {
       case 'TEXT':
         return <TextElement config={config} style={style} />;
+      case 'TITLE':
+        return <TitleElement config={config} style={style} />;
       case 'TABLE':
         return <TableElement config={config} style={style} />;
       case 'CHART':
@@ -147,6 +150,10 @@ export const ReportBatchViewer: React.FC = () => {
           const right = margins.right !== undefined ? margins.right : 20;
           const bottom = margins.bottom !== undefined ? margins.bottom : 20;
           const left = margins.left !== undefined ? margins.left : 20;
+          
+          // Logo do projeto (tentar pegar dos metadados ou do projeto da geração)
+          const projectLogo = metadata.project?.logo || generation.project?.logo;
+          const showLogo = pageSettings.showProjectLogo === true && projectLogo;
 
           return (
             <React.Fragment key={generation.id}>
@@ -183,13 +190,40 @@ export const ReportBatchViewer: React.FC = () => {
                   ['--margin-left' as any]: `${left}mm`,
                 }}
               >
+                {/* Logo da obra (se habilitada) */}
+                {showLogo && (
+                  <div 
+                    style={{
+                      position: 'absolute',
+                      top: `${top}mm`,
+                      left: `${left}mm`,
+                      maxWidth: '120px',
+                      maxHeight: '90px',
+                      zIndex: 10,
+                    }}
+                  >
+                    <img 
+                      src={projectLogo} 
+                      alt="Logo da obra"
+                      style={{
+                        maxWidth: '100%',
+                        maxHeight: '100%',
+                        objectFit: 'contain',
+                        display: 'block',
+                      }}
+                    />
+                  </div>
+                )}
+
                 {/* Elementos do relatório */}
                 <div>
                   {elements.map((element: any) => (
                     <div 
                       key={element.id} 
                       className="report-element"
-                      style={{ marginBottom: element.style?.marginBottom || '24px' }}
+                      style={{ 
+                        marginBottom: element.style?.marginBottom || '24px',
+                      }}
                     >
                       {renderElement(element)}
                     </div>

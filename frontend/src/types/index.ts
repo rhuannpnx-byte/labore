@@ -6,6 +6,7 @@ export interface Project {
   name: string;
   code?: string;
   client?: string;
+  logo?: string;
   address?: string;
   description?: string;
   status: ProjectStatus;
@@ -136,7 +137,7 @@ export interface CreateSubmissionData {
 // ====================================
 
 export type ReportStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
-export type ElementType = 'TEXT' | 'CHART' | 'TABLE' | 'IMAGE' | 'SIGNATURE' | 'DIVIDER' | 'SPACER';
+export type ElementType = 'TEXT' | 'TITLE' | 'CHART' | 'TABLE' | 'IMAGE' | 'SIGNATURE' | 'DIVIDER' | 'SPACER';
 export type ChartType = 'bar' | 'line' | 'pie' | 'doughnut' | 'radar' | 'polarArea';
 
 export interface PageSettings {
@@ -148,6 +149,7 @@ export interface PageSettings {
   };
   orientation?: 'portrait' | 'landscape';
   showPageNumbers?: boolean;
+  showProjectLogo?: boolean;
 }
 
 export interface Report {

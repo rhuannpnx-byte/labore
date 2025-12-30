@@ -38,6 +38,7 @@ model Project {
   name        String
   code        String?  // Código/Identificador da obra
   client      String?  // Nome do cliente da obra
+  logo        String?  // Logo da obra (base64)
   address     String?
   description String?
   status      ProjectStatus @default(ACTIVE)
@@ -353,6 +354,7 @@ model ReportElement {
 
 enum ReportElementType {
   TEXT
+  TITLE
   TABLE
   CHART
   IMAGE

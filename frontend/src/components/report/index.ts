@@ -1,4 +1,5 @@
 export { TextElement } from './TextElement';
+export { TitleElement } from './TitleElement';
 export { TableElement } from './TableElement';
 export { ChartElement } from './ChartElement';
 export { ImageElement } from './ImageElement';
