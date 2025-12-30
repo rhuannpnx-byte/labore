@@ -653,7 +653,12 @@ function processTableData(config: any, submissionData: any, projectData?: any, u
     
     if (response) {
       // Atualizar dados da tabela com valores da submissão
-      processedConfig.data = response.value;
+      // Se for uma string simples (não JSON), formatar se for data
+      let data = response.value;
+      if (typeof data === 'string' && !data.startsWith('[') && !data.startsWith('{')) {
+        data = formatValue(data, response.field.type);
+      }
+      processedConfig.data = data;
     }
   } else if (config.dataSource && config.dataSource.type === 'calculated' && submissionData) {
     const ruleKey = config.dataSource.ruleKey;
@@ -838,6 +843,33 @@ function processChartData(config: any, submissionData: any, projectData?: any, u
   return processedConfig;
 }
 
+// Função auxiliar para formatar valores, incluindo datas
+function formatValue(value: string, fieldType?: string): string {
+  if (!value) return '';
+  
+  // Se é explicitamente um campo de data ou detectar formato de data ISO/YYYY-MM-DD
+  const isDateField = fieldType === 'DATE';
+  const dateRegex = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}.*)?$/;
+  
+  if (isDateField || dateRegex.test(value)) {
+    try {
+      const date = new Date(value);
+      if (!isNaN(date.getTime())) {
+        // Formatar como dd/mm/yyyy
+        return date.toLocaleDateString('pt-BR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        });
+      }
+    } catch {
+      return value;
+    }
+  }
+  
+  return value;
+}
+
 // Função auxiliar para processar variáveis dinâmicas em qualquer texto
 function processTextVariables(text: string, submissionData: any, projectData?: any, user?: any): string {
   let content = text;
@@ -870,7 +902,8 @@ function processTextVariables(text: string, submissionData: any, projectData?: a
     // Campos do formulário - formato: #field.fieldKey ou {{field.fieldKey}}
     if (submissionData.responses) {
       submissionData.responses.forEach((response: any) => {
-        replaceVariable(`field.${response.field.fieldKey}`, response.value || '');
+        const formattedValue = formatValue(response.value || '', response.field.type);
+        replaceVariable(`field.${response.field.fieldKey}`, formattedValue);
       });
     }
 
@@ -906,7 +939,10 @@ function processTextData(config: any, submissionData: any, projectData: any, use
 function resolveBinding(binding: any, submissionData: any): string {
   if (binding.type === 'form_field') {
     const response = submissionData.responses.find((r: any) => r.field.fieldKey === binding.fieldKey);
-    return response ? response.value : '';
+    if (response) {
+      return formatValue(response.value, response.field.type);
+    }
+    return '';
   } else if (binding.type === 'calculated') {
     const result = submissionData.processingResults.find((r: any) => r.rule.ruleKey === binding.ruleKey);
     return result ? result.result : '';

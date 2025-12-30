@@ -110,12 +110,12 @@ export default function Dashboard() {
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold mb-2">
             {user?.name ? `Olá, ${user.name.split(' ')[0]}!` : 'Bem-vindo!'}
-          </h1>
+        </h1>
           <p className="text-sm sm:text-base text-blue-100">
-            {selectedProject 
+          {selectedProject 
               ? `Trabalhand o na obra: ${selectedProject.name}` 
               : 'Selecione uma obra para começar a trabalhar'}
-          </p>
+        </p>
         </div>
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full translate-y-1/2 -translate-x-1/2" />
@@ -157,11 +157,11 @@ export default function Dashboard() {
                       <ChevronRight className="w-5 h-5 text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
                     <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-1">
-                      {item.title}
-                    </h3>
+                          {item.title}
+                        </h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {item.description}
-                    </p>
+                          {item.description}
+                        </p>
                   </CardContent>
                 </Card>
               </Link>
