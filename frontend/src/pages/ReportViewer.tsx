@@ -94,14 +94,19 @@ export const ReportViewer: React.FC = () => {
     );
   }
 
-  const reportData = generation.data.report;
+  const reportData = generation.report || generation.data.report;
   const elements = generation.data.elements || [];
   const metadata = generation.data.metadata || {};
   
   // Configurações de página (margens)
-  const pageSettings = reportData.pageSettings || {};
-  const margins = pageSettings.margins || { top: 20, right: 20, bottom: 20, left: 20 };
-  const { top = 20, right = 20, bottom = 20, left = 20 } = margins;
+  const pageSettings = reportData?.pageSettings || {};
+  const margins = pageSettings.margins || {};
+  
+  // Usar valores da margem ou padrão, mas permitindo 0
+  const top = margins.top !== undefined ? margins.top : 20;
+  const right = margins.right !== undefined ? margins.right : 20;
+  const bottom = margins.bottom !== undefined ? margins.bottom : 20;
+  const left = margins.left !== undefined ? margins.left : 20;
 
   return (
     <div className="print:p-0 print:m-0">

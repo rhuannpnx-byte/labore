@@ -616,7 +616,20 @@ export const getGeneration = async (req: Request, res: Response) => {
     const generation = await prisma.reportGeneration.findUnique({
       where: { id: generationId },
       include: {
-        report: true,
+        report: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            status: true,
+            pageSettings: true,  // Incluir explicitamente
+            formId: true,
+            projectId: true,
+            createdById: true,
+            createdAt: true,
+            updatedAt: true
+          }
+        },
         user: {
           select: { id: true, name: true, email: true }
         },

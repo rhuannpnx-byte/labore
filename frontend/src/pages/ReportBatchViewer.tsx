@@ -136,9 +136,17 @@ export const ReportBatchViewer: React.FC = () => {
       {/* Relatórios em sequência */}
       <A4Container className="print:bg-white print:p-0">
         {generations.map((generation, genIndex) => {
-          const reportData = generation.data.report;
+          const reportData = generation.report || generation.data.report;
           const elements = generation.data.elements || [];
           const metadata = generation.data.metadata || {};
+          
+          // Configurações de página (margens)
+          const pageSettings = reportData?.pageSettings || {};
+          const margins = pageSettings.margins || {};
+          const top = margins.top !== undefined ? margins.top : 20;
+          const right = margins.right !== undefined ? margins.right : 20;
+          const bottom = margins.bottom !== undefined ? margins.bottom : 20;
+          const left = margins.left !== undefined ? margins.left : 20;
 
           return (
             <React.Fragment key={generation.id}>
@@ -162,9 +170,17 @@ export const ReportBatchViewer: React.FC = () => {
                   background: 'white',
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
                   margin: '0 auto 2rem auto',
-                  padding: '20mm',
+                  paddingTop: `${top}mm`,
+                  paddingRight: `${right}mm`,
+                  paddingBottom: `${bottom}mm`,
+                  paddingLeft: `${left}mm`,
                   boxSizing: 'border-box',
                   position: 'relative',
+                  // CSS Variables para uso na impressão
+                  ['--margin-top' as any]: `${top}mm`,
+                  ['--margin-right' as any]: `${right}mm`,
+                  ['--margin-bottom' as any]: `${bottom}mm`,
+                  ['--margin-left' as any]: `${left}mm`,
                 }}
               >
                 {/* Elementos do relatório */}
@@ -228,7 +244,10 @@ export const ReportBatchViewer: React.FC = () => {
           .a4-paged-content {
             box-shadow: none !important;
             margin: 0 !important;
-            padding: 20mm !important;
+            padding-top: var(--margin-top, 20mm) !important;
+            padding-right: var(--margin-right, 20mm) !important;
+            padding-bottom: var(--margin-bottom, 20mm) !important;
+            padding-left: var(--margin-left, 20mm) !important;
             page-break-after: always;
             page-break-inside: avoid;
           }
