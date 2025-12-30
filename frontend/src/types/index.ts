@@ -139,6 +139,17 @@ export type ReportStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 export type ElementType = 'TEXT' | 'CHART' | 'TABLE' | 'IMAGE' | 'SIGNATURE' | 'DIVIDER' | 'SPACER';
 export type ChartType = 'bar' | 'line' | 'pie' | 'doughnut' | 'radar' | 'polarArea';
 
+export interface PageSettings {
+  margins?: {
+    top?: number;
+    right?: number;
+    bottom?: number;
+    left?: number;
+  };
+  orientation?: 'portrait' | 'landscape';
+  showPageNumbers?: boolean;
+}
+
 export interface Report {
   id: string;
   title: string;
@@ -147,6 +158,7 @@ export interface Report {
   formId?: string;
   projectId?: string;
   createdById?: string;
+  pageSettings?: PageSettings;
   createdAt: string;
   updatedAt: string;
   form?: Form;

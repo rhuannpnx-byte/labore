@@ -1,7 +1,15 @@
 import React, { useRef, useEffect, useState } from 'react';
 
+interface PageMargins {
+  top?: number;
+  right?: number;
+  bottom?: number;
+  left?: number;
+}
+
 interface A4PreviewWithPageBreaksProps {
   children: React.ReactNode;
+  margins?: PageMargins;
 }
 
 /**
@@ -9,15 +17,21 @@ interface A4PreviewWithPageBreaksProps {
  */
 export const A4PreviewWithPageBreaks: React.FC<A4PreviewWithPageBreaksProps> = ({
   children,
+  margins = { top: 20, right: 20, bottom: 20, left: 20 },
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [pageBreaks, setPageBreaks] = useState<number[]>([]);
 
+  const { top = 20, right = 20, bottom = 20, left = 20 } = margins;
+
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Altura útil de uma página A4 (297mm - 40mm de margem = 257mm ≈ 972px @ 96dpi)
-    const pageHeight = 972;
+    // Calcular altura útil baseada nas margens (297mm - margens top e bottom)
+    const marginTotalMM = top + bottom;
+    const usableHeightMM = 297 - marginTotalMM;
+    // Converter mm para px (1mm ≈ 3.78px @ 96dpi)
+    const pageHeight = usableHeightMM * 3.78;
     const contentHeight = containerRef.current.scrollHeight;
     const numPages = Math.ceil(contentHeight / pageHeight);
     
@@ -28,7 +42,7 @@ export const A4PreviewWithPageBreaks: React.FC<A4PreviewWithPageBreaksProps> = (
     }
     
     setPageBreaks(breaks);
-  }, [children]);
+  }, [children, top, bottom]);
 
   return (
     <div style={{ position: 'relative' }}>
@@ -42,7 +56,10 @@ export const A4PreviewWithPageBreaks: React.FC<A4PreviewWithPageBreaksProps> = (
           background: 'white',
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
           margin: '0 auto',
-          padding: '20mm',
+          paddingTop: `${top}mm`,
+          paddingRight: `${right}mm`,
+          paddingBottom: `${bottom}mm`,
+          paddingLeft: `${left}mm`,
           boxSizing: 'border-box',
           position: 'relative',
         }}

@@ -1,10 +1,18 @@
 import React from 'react';
 
+interface PageMargins {
+  top?: number;
+  right?: number;
+  bottom?: number;
+  left?: number;
+}
+
 interface A4PageProps {
   children: React.ReactNode;
   pageNumber?: number;
   showPageNumber?: boolean;
   className?: string;
+  margins?: PageMargins;
 }
 
 /**
@@ -17,14 +25,20 @@ export const A4Page: React.FC<A4PageProps> = ({
   pageNumber,
   showPageNumber = true,
   className = '',
+  margins = { top: 20, right: 20, bottom: 20, left: 20 },
 }) => {
+  const { top = 20, right = 20, bottom = 20, left = 20 } = margins;
+  
   return (
     <div
       className={`a4-page bg-white shadow-lg mx-auto relative ${className}`}
       style={{
         width: '210mm',
         minHeight: '297mm',
-        padding: '20mm',
+        paddingTop: `${top}mm`,
+        paddingRight: `${right}mm`,
+        paddingBottom: `${bottom}mm`,
+        paddingLeft: `${left}mm`,
         boxSizing: 'border-box',
         pageBreakAfter: 'always',
         position: 'relative',

@@ -302,6 +302,7 @@ model Report {
   title       String
   description String?
   status      ReportStatus @default(DRAFT)
+  pageSettings Json?   // Configurações de página (margens, orientação, etc)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   

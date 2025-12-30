@@ -97,6 +97,11 @@ export const ReportViewer: React.FC = () => {
   const reportData = generation.data.report;
   const elements = generation.data.elements || [];
   const metadata = generation.data.metadata || {};
+  
+  // Configurações de página (margens)
+  const pageSettings = reportData.pageSettings || {};
+  const margins = pageSettings.margins || { top: 20, right: 20, bottom: 20, left: 20 };
+  const { top = 20, right = 20, bottom = 20, left = 20 } = margins;
 
   return (
     <div className="print:p-0 print:m-0">
@@ -154,7 +159,10 @@ export const ReportViewer: React.FC = () => {
             background: 'white',
             boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
             margin: '0 auto',
-            padding: '20mm',
+            paddingTop: `${top}mm`,
+            paddingRight: `${right}mm`,
+            paddingBottom: `${bottom}mm`,
+            paddingLeft: `${left}mm`,
             boxSizing: 'border-box',
             position: 'relative',
           }}
@@ -217,7 +225,10 @@ export const ReportViewer: React.FC = () => {
           .a4-paged-content {
             box-shadow: none !important;
             margin: 0 !important;
-            padding: 20mm !important;
+            padding-top: ${top}mm !important;
+            padding-right: ${right}mm !important;
+            padding-bottom: ${bottom}mm !important;
+            padding-left: ${left}mm !important;
             page-break-inside: avoid;
           }
           

@@ -133,7 +133,7 @@ export const getReport = async (req: Request, res: Response) => {
 // Criar novo relatório
 export const createReport = async (req: Request, res: Response) => {
   try {
-    const { title, description, formId, projectId, status } = req.body;
+    const { title, description, formId, projectId, status, pageSettings } = req.body;
     const user = req.user!;
 
     // Validação básica
@@ -183,6 +183,7 @@ export const createReport = async (req: Request, res: Response) => {
         formId,
         projectId: projectId || null,
         status: normalizedStatus,
+        pageSettings: pageSettings || null,
         createdById: user.userId
       },
       include: {
@@ -209,7 +210,7 @@ export const createReport = async (req: Request, res: Response) => {
 export const updateReport = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { title, description, formId, projectId, status } = req.body;
+    const { title, description, formId, projectId, status, pageSettings } = req.body;
     const user = req.user!;
 
     // Buscar relatório
@@ -249,7 +250,8 @@ export const updateReport = async (req: Request, res: Response) => {
         description,
         formId: formId || existingReport.formId,
         projectId: projectId !== undefined ? projectId : existingReport.projectId,
-        status: normalizedStatus
+        status: normalizedStatus,
+        pageSettings: pageSettings !== undefined ? pageSettings : existingReport.pageSettings
       },
       include: {
         createdBy: {

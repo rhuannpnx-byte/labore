@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { reportsApi, formsApi } from '../services/api';
-import { Report, ReportElement, ElementType, CreateElementData, Form } from '../types';
+import { Report, ReportElement, ElementType, CreateElementData, Form, PageSettings } from '../types';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Modal } from '../components/ui/Modal';
@@ -105,6 +105,10 @@ export const ReportBuilder: React.FC = () => {
   const [description, setDescription] = useState('');
   const [formId, setFormId] = useState('');
   const [status, setStatus] = useState<'DRAFT' | 'PUBLISHED' | 'ARCHIVED'>('DRAFT');
+  const [pageSettings, setPageSettings] = useState<PageSettings>({
+    margins: { top: 20, right: 20, bottom: 20, left: 20 },
+    showPageNumbers: true,
+  });
 
   useEffect(() => {
     loadForms();
@@ -147,6 +151,9 @@ export const ReportBuilder: React.FC = () => {
       setFormId(response.data.formId);
       setStatus(response.data.status);
       setElements(response.data.elements || []);
+      if (response.data.pageSettings) {
+        setPageSettings(response.data.pageSettings);
+      }
       if (response.data.form) {
         setForm(response.data.form);
       }
@@ -179,6 +186,7 @@ export const ReportBuilder: React.FC = () => {
           description,
           formId,
           status,
+          pageSettings,
           projectId: selectedProject?.id,
         });
       } else {
@@ -188,6 +196,7 @@ export const ReportBuilder: React.FC = () => {
           description,
           formId,
           status,
+          pageSettings,
           projectId: selectedProject?.id,
         });
         navigate(`/reports/${response.data.id}/edit`, { replace: true });
@@ -416,6 +425,96 @@ export const ReportBuilder: React.FC = () => {
               <option value="PUBLISHED">Ativo</option>
               <option value="ARCHIVED">Arquivado</option>
             </select>
+          </div>
+
+          {/* Configurações de Página */}
+          <div className="border-t pt-4 mt-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">Configurações de Página</h3>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Margem Superior (mm)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="50"
+                  value={pageSettings.margins?.top || 20}
+                  onChange={(e) => setPageSettings({
+                    ...pageSettings,
+                    margins: { ...pageSettings.margins, top: Number(e.target.value) }
+                  })}
+                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Margem Inferior (mm)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="50"
+                  value={pageSettings.margins?.bottom || 20}
+                  onChange={(e) => setPageSettings({
+                    ...pageSettings,
+                    margins: { ...pageSettings.margins, bottom: Number(e.target.value) }
+                  })}
+                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Margem Esquerda (mm)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="50"
+                  value={pageSettings.margins?.left || 20}
+                  onChange={(e) => setPageSettings({
+                    ...pageSettings,
+                    margins: { ...pageSettings.margins, left: Number(e.target.value) }
+                  })}
+                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Margem Direita (mm)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="50"
+                  value={pageSettings.margins?.right || 20}
+                  onChange={(e) => setPageSettings({
+                    ...pageSettings,
+                    margins: { ...pageSettings.margins, right: Number(e.target.value) }
+                  })}
+                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="mt-3">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={pageSettings.showPageNumbers !== false}
+                  onChange={(e) => setPageSettings({
+                    ...pageSettings,
+                    showPageNumbers: e.target.checked
+                  })}
+                  className="rounded"
+                />
+                <span className="text-sm text-gray-700">Mostrar números de página</span>
+              </label>
+            </div>
           </div>
         </div>
       </Card>
@@ -663,7 +762,7 @@ export const ReportBuilder: React.FC = () => {
                 </div>
               ) : (
                 <A4Container showGrid={false}>
-                  <A4PreviewWithPageBreaks>
+                  <A4PreviewWithPageBreaks margins={pageSettings.margins}>
                     <div>
                       {elements.map((element) => (
                         <div 
