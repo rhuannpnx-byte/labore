@@ -6,7 +6,7 @@ import { Button } from './ui/Button';
 import { Badge } from './ui/Badge';
 import { authService, User as UserType } from '../services/auth';
 import ProjectSelector from './ProjectSelector';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export default function Layout() {
   const location = useLocation();
@@ -15,6 +15,8 @@ export default function Layout() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<UserType | null>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -44,6 +46,23 @@ export default function Layout() {
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
   }, []);
+
+  // Close menus when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    if (isUserMenuOpen || isMobileMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isUserMenuOpen, isMobileMenuOpen]);
 
   const handleLogout = () => {
     authService.logout();
@@ -76,17 +95,6 @@ export default function Layout() {
   
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-      {/* Overlay for dropdown menus */}
-      {(isUserMenuOpen || isMobileMenuOpen) && (
-        <div 
-          className="fixed inset-0 z-[100] bg-transparent" 
-          onClick={() => {
-            setIsUserMenuOpen(false);
-            setIsMobileMenuOpen(false);
-          }} 
-        />
-      )}
-      
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 print:hidden sticky top-0 z-30 backdrop-blur-sm bg-white/95 dark:bg-gray-800/95">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -119,7 +127,7 @@ export default function Layout() {
               )}
 
               {/* User Menu Desktop */}
-              <div className="relative">
+              <div className="relative" ref={userMenuRef}>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -133,7 +141,7 @@ export default function Layout() {
                 </Button>
 
                 {isUserMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-[110]">
+                    <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
                       <div className="p-4 border-b border-gray-100 dark:border-gray-700">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white text-lg font-semibold">
@@ -215,7 +223,10 @@ export default function Layout() {
 
           {/* Mobile Menu */}
           {isMobileMenuOpen && (
-              <div className="relative z-[110] md:hidden border-t border-gray-200 dark:border-gray-700 py-4 space-y-2">
+              <div 
+                ref={mobileMenuRef}
+                className="relative z-50 md:hidden border-t border-gray-200 dark:border-gray-700 py-4 space-y-2"
+              >
                 {pendingCount > 0 && (
                   <Link to="/pending-submissions" onClick={() => setIsMobileMenuOpen(false)}>
                     <Button
