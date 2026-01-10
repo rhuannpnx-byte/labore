@@ -49,7 +49,7 @@ export const SmartTextEditor: React.FC<SmartTextEditorProps> = ({
     { type: '@', key: 'submittedAt', label: 'Data da Submissão', description: 'Data/hora da submissão do formulário' },
   ];
 
-  // Sugestões para # (campos do formulário)
+  // Sugestões para # (campos do formulário e informações da submissão)
   const getCampoSuggestions = (): Suggestion[] => {
     if (!form) return [];
 
@@ -67,8 +67,18 @@ export const SmartTextEditor: React.FC<SmartTextEditorProps> = ({
       description: `Cálculo: ${rule.formula}`,
     }));
 
-    return [
+    // Informações padrões da submissão
+    const submissionInfoSuggestions: Suggestion[] = [
       { type: '#', key: 'form.title', label: 'Título do Formulário', description: 'Nome do formulário' },
+      { type: '#', key: 'submittedBy.name', label: 'Nome do Preenchedor', description: 'Usuário que preencheu o formulário' },
+      { type: '#', key: 'submittedBy.email', label: 'Email do Preenchedor', description: 'Email do usuário que preencheu' },
+      { type: '#', key: 'submittedAt', label: 'Data/Hora do Preenchimento', description: 'Data e hora da submissão' },
+      { type: '#', key: 'submittedAt.date', label: 'Data do Preenchimento', description: 'Somente a data da submissão (dd/mm/aaaa)' },
+      { type: '#', key: 'submittedAt.time', label: 'Hora do Preenchimento', description: 'Somente a hora da submissão (HH:mm)' },
+    ];
+
+    return [
+      ...submissionInfoSuggestions,
       ...fieldSuggestions,
       ...ruleSuggestions,
     ];

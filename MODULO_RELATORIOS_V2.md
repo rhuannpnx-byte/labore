@@ -40,9 +40,17 @@ Digite `@` para acessar informações de cadastro:
 Digite `#` para acessar dados do formulário vinculado:
 
 ```
-#{form.title}          - Título do formulário
-#{field.CAMPO}         - Valor de um campo específico
-#{calc.CALCULO}        - Resultado de um cálculo
+# Informações da Submissão
+#{form.title}              - Título do formulário
+#{submittedBy.name}        - Nome de quem preencheu o formulário
+#{submittedBy.email}       - Email de quem preencheu
+#{submittedAt}             - Data e hora completa do preenchimento
+#{submittedAt.date}        - Somente a data do preenchimento (dd/mm/aaaa)
+#{submittedAt.time}        - Somente a hora do preenchimento (HH:mm)
+
+# Campos e Cálculos
+#{field.CAMPO}             - Valor de um campo específico
+#{calc.CALCULO}            - Resultado de um cálculo
 ```
 
 **Cor de destaque**: <span style="color: #15803d; background: #dcfce7">Verde claro</span>
@@ -90,8 +98,11 @@ Status: #{calc.status_aprovacao}
 
 ---
 
-Responsável Técnico: @{submittedBy.name}
-Email: @{submittedBy.email}
+Preenchido por: #{submittedBy.name}
+Email: #{submittedBy.email}
+Data/Hora do Preenchimento: #{submittedAt}
+
+Relatório gerado por: @{currentUser.name}
 Data do Relatório: @{currentDate}
 ```
 

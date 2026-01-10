@@ -68,8 +68,15 @@ Digite `@` e veja:
 Digite `#` e veja:
 
 ```
-#{field.resistencia}   ← Valor do campo
-#{calc.aprovado}       ← Resultado calculado
+# Informações da Submissão
+#{submittedBy.name}       ← Quem preencheu
+#{submittedAt}            ← Data/hora completa
+#{submittedAt.date}       ← Somente data (dd/mm/aaaa)
+#{submittedAt.time}       ← Somente hora (HH:mm)
+
+# Campos e Cálculos
+#{field.resistencia}      ← Valor do campo
+#{calc.aprovado}          ← Resultado calculado
 ```
 
 **Cor**: <span style="background: #dcfce7; color: #15803d; padding: 2px 6px; border-radius: 4px;">Verde Claro</span>

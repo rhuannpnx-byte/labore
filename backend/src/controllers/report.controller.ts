@@ -912,7 +912,25 @@ function processTextVariables(text: string, submissionData: any, projectData?: a
     replaceVariable('form.title', submissionData.form?.title || '');
     replaceVariable('submittedBy.name', submissionData.submittedBy?.name || '');
     replaceVariable('submittedBy.email', submissionData.submittedBy?.email || '');
-    replaceVariable('submittedAt', submissionData.submittedAt ? new Date(submissionData.submittedAt).toLocaleString('pt-BR') : '');
+    
+    // Data/Hora completa da submissão
+    if (submissionData.submittedAt) {
+      const submittedDate = new Date(submissionData.submittedAt);
+      replaceVariable('submittedAt', submittedDate.toLocaleString('pt-BR'));
+      
+      // Data isolada (dd/mm/aaaa)
+      replaceVariable('submittedAt.date', submittedDate.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }));
+      
+      // Hora isolada (HH:mm)
+      replaceVariable('submittedAt.time', submittedDate.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit'
+      }));
+    }
 
     // Campos do formulário - formato: #field.fieldKey ou {{field.fieldKey}}
     if (submissionData.responses) {
