@@ -302,6 +302,200 @@ export const deleteReport = async (req: Request, res: Response) => {
   }
 };
 
+// Duplicar relatório
+export const duplicateReport = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const user = req.user!;
+
+    // Verificar permissões (apenas ADMIN e SUPERADMIN)
+    if (user.role !== 'SUPERADMIN' && user.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Apenas Administradores podem duplicar relatórios' });
+    }
+
+    // Buscar relatório original com todos os elementos
+    const originalReport = await prisma.report.findUnique({
+      where: { id },
+      include: {
+        elements: {
+          orderBy: { order: 'asc' }
+        }
+      }
+    });
+
+    if (!originalReport) {
+      return res.status(404).json({ error: 'Relatório não encontrado' });
+    }
+
+    // Verificar se o usuário tem acesso ao projeto do relatório
+    if (user.role !== 'SUPERADMIN') {
+      const hasAccess = await prisma.userProject.findFirst({
+        where: {
+          userId: user.userId,
+          projectId: originalReport.projectId!
+        }
+      });
+
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'Você não tem acesso a este projeto' });
+      }
+    }
+
+    // Criar relatório duplicado
+    const duplicatedReport = await prisma.report.create({
+      data: {
+        title: `${originalReport.title} (Cópia)`,
+        description: originalReport.description,
+        status: 'DRAFT', // Sempre criar como rascunho
+        pageSettings: originalReport.pageSettings,
+        formId: originalReport.formId,
+        projectId: originalReport.projectId,
+        createdById: user.userId,
+        elements: {
+          create: originalReport.elements.map((element: any) => ({
+            type: element.type,
+            title: element.title,
+            config: element.config,
+            style: element.style,
+            order: element.order
+          }))
+        }
+      },
+      include: {
+        createdBy: {
+          select: { id: true, name: true, email: true }
+        },
+        form: {
+          select: { id: true, title: true }
+        },
+        project: {
+          select: { id: true, name: true }
+        },
+        _count: {
+          select: { elements: true, generations: true }
+        }
+      }
+    });
+
+    res.status(201).json(duplicatedReport);
+  } catch (error) {
+    console.error('Error duplicating report:', error);
+    res.status(500).json({ error: 'Erro ao duplicar relatório' });
+  }
+};
+
+// Compartilhar relatório (copiar para outro projeto)
+export const shareReport = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { targetProjectId } = req.body;
+    const user = req.user!;
+
+    // Verificar permissões (apenas ADMIN e SUPERADMIN)
+    if (user.role !== 'SUPERADMIN' && user.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Apenas Administradores podem compartilhar relatórios' });
+    }
+
+    if (!targetProjectId) {
+      return res.status(400).json({ error: 'ID do projeto de destino é obrigatório' });
+    }
+
+    // Buscar relatório original com todos os elementos
+    const originalReport = await prisma.report.findUnique({
+      where: { id },
+      include: {
+        elements: {
+          orderBy: { order: 'asc' }
+        },
+        project: {
+          select: { id: true, companyId: true }
+        }
+      }
+    });
+
+    if (!originalReport) {
+      return res.status(404).json({ error: 'Relatório não encontrado' });
+    }
+
+    // Buscar projeto de destino
+    const targetProject = await prisma.project.findUnique({
+      where: { id: targetProjectId },
+      select: { id: true, name: true, companyId: true }
+    });
+
+    if (!targetProject) {
+      return res.status(404).json({ error: 'Projeto de destino não encontrado' });
+    }
+
+    // Verificar se os projetos são da mesma empresa
+    if (originalReport.project?.companyId !== targetProject.companyId) {
+      return res.status(403).json({ error: 'Só é possível compartilhar relatórios entre obras da mesma empresa' });
+    }
+
+    // Verificar se o usuário tem acesso aos dois projetos
+    if (user.role !== 'SUPERADMIN') {
+      const hasAccessToSource = await prisma.userProject.findFirst({
+        where: {
+          userId: user.userId,
+          projectId: originalReport.projectId!
+        }
+      });
+
+      const hasAccessToTarget = await prisma.userProject.findFirst({
+        where: {
+          userId: user.userId,
+          projectId: targetProjectId
+        }
+      });
+
+      if (!hasAccessToSource || !hasAccessToTarget) {
+        return res.status(403).json({ error: 'Você não tem acesso a um dos projetos' });
+      }
+    }
+
+    // Criar relatório no projeto de destino
+    const sharedReport = await prisma.report.create({
+      data: {
+        title: originalReport.title,
+        description: originalReport.description,
+        status: 'DRAFT', // Sempre criar como rascunho
+        pageSettings: originalReport.pageSettings,
+        formId: originalReport.formId,
+        projectId: targetProjectId,
+        createdById: user.userId,
+        elements: {
+          create: originalReport.elements.map((element: any) => ({
+            type: element.type,
+            title: element.title,
+            config: element.config,
+            style: element.style,
+            order: element.order
+          }))
+        }
+      },
+      include: {
+        createdBy: {
+          select: { id: true, name: true, email: true }
+        },
+        form: {
+          select: { id: true, title: true }
+        },
+        project: {
+          select: { id: true, name: true }
+        },
+        _count: {
+          select: { elements: true, generations: true }
+        }
+      }
+    });
+
+    res.status(201).json(sharedReport);
+  } catch (error) {
+    console.error('Error sharing report:', error);
+    res.status(500).json({ error: 'Erro ao compartilhar relatório' });
+  }
+};
+
 // ============ ELEMENTOS DO RELATÓRIO ============
 
 // Adicionar elemento ao relatório

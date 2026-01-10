@@ -60,7 +60,20 @@ export async function listProjects(req: Request, res: Response) {
 
     const projects = await prisma.project.findMany({
       where,
-      include: {
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        client: true,
+        logo: true,
+        address: true,
+        description: true,
+        status: true,
+        startDate: true,
+        endDate: true,
+        createdAt: true,
+        updatedAt: true,
+        companyId: true, // Incluir explicitamente
         company: {
           select: {
             id: true,

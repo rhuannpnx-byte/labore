@@ -208,5 +208,11 @@ export const reportsApi = {
     api.get(`/reports/generations/${generationId}`),
   listGenerations: (reportId: string) => 
     api.get(`/reports/${reportId}/generations`),
+  
+  // Report Management
+  duplicate: (reportId: string) =>
+    api.post(`/reports/${reportId}/duplicate`),
+  share: (reportId: string, targetProjectId: string) =>
+    api.post(`/reports/${reportId}/share`, { targetProjectId }),
 };
 

@@ -24,6 +24,12 @@ router.put('/:id', reportController.updateReport);
 // Deletar relatório
 router.delete('/:id', reportController.deleteReport);
 
+// Duplicar relatório
+router.post('/:id/duplicate', reportController.duplicateReport);
+
+// Compartilhar relatório
+router.post('/:id/share', reportController.shareReport);
+
 // ====== ROTAS DE ELEMENTOS ======
 
 // Adicionar elemento ao relatório

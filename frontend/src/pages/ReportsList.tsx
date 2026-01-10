@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { reportsApi } from '../services/api';
 import { Report, ReportStatus } from '../types';
@@ -6,6 +6,9 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { useProjectContext } from '../services/project-context';
+import { authService } from '../services/auth';
+import { MoreVertical, Copy, Share2 } from 'lucide-react';
+import ShareReportModal from '../components/ShareReportModal';
 
 const statusColors: Record<ReportStatus, string> = {
   DRAFT: 'bg-yellow-100 text-yellow-800',
@@ -26,10 +29,32 @@ export const ReportsList: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<ReportStatus | 'ALL'>('ALL');
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const menuRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  
+  const currentUser = authService.getUser();
+  const canManageReports = currentUser?.role === 'SUPERADMIN' || currentUser?.role === 'ADMIN';
 
   useEffect(() => {
     loadReports();
   }, [selectedProject]);
+
+  // Fechar menu ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (openMenuId && menuRefs.current[openMenuId]) {
+        const menuElement = menuRefs.current[openMenuId];
+        if (menuElement && !menuElement.contains(event.target as Node)) {
+          setOpenMenuId(null);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [openMenuId]);
 
   const loadReports = async () => {
     try {
@@ -64,6 +89,38 @@ export const ReportsList: React.FC = () => {
     } catch (err: any) {
       alert(err.response?.data?.error || 'Erro ao deletar relatório');
     }
+  };
+
+  const handleDuplicate = async (report: Report) => {
+    setOpenMenuId(null);
+    
+    if (!window.confirm(`Deseja duplicar o relatório "${report.title}"?`)) {
+      return;
+    }
+
+    try {
+      const response = await reportsApi.duplicate(report.id);
+      setReports([response.data, ...reports]);
+      alert('Relatório duplicado com sucesso!');
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Erro ao duplicar relatório');
+    }
+  };
+
+  const handleOpenShareModal = (report: Report) => {
+    setOpenMenuId(null);
+    setSelectedReport(report);
+    setShowShareModal(true);
+  };
+
+  const handleShare = async () => {
+    // Modal callback - recarregar lista
+    loadReports();
+  };
+
+  const toggleMenu = (reportId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setOpenMenuId(openMenuId === reportId ? null : reportId);
   };
 
   const filteredReports = statusFilter === 'ALL' 
@@ -183,21 +240,65 @@ export const ReportsList: React.FC = () => {
           {filteredReports.map((report) => (
             <Card
               key={report.id}
-              className="p-5 sm:p-6 hover:shadow-lg transition-all cursor-pointer"
+              className="p-5 sm:p-6 hover:shadow-lg transition-all cursor-pointer relative"
               onClick={() => navigate(`/reports/${report.id}/edit`)}
             >
+              {/* Cabeçalho com título, badge e menu */}
               <div className="flex items-start justify-between gap-2 mb-3">
                 <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 flex-1">
                   {report.title}
                 </h3>
-                <Badge 
-                  variant={
-                    report.status === 'PUBLISHED' ? 'success' : 
-                    report.status === 'DRAFT' ? 'warning' : 'secondary'
-                  }
-                >
-                  {statusLabels[report.status]}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge 
+                    variant={
+                      report.status === 'PUBLISHED' ? 'success' : 
+                      report.status === 'DRAFT' ? 'warning' : 'secondary'
+                    }
+                  >
+                    {statusLabels[report.status]}
+                  </Badge>
+                  
+                  {/* Menu de 3 pontos */}
+                  {canManageReports && (
+                    <div className="relative" ref={(el) => (menuRefs.current[report.id] = el)}>
+                      <button
+                        onClick={(e) => toggleMenu(report.id, e)}
+                        className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        title="Mais opções"
+                      >
+                        <MoreVertical size={18} className="text-gray-600 dark:text-gray-400" />
+                      </button>
+                      
+                      {/* Dropdown menu */}
+                      {openMenuId === report.id && (
+                        <div className="absolute right-0 top-8 mt-1 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
+                          <div className="py-1">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDuplicate(report);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                            >
+                              <Copy size={16} />
+                              Duplicar relatório
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenShareModal(report);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                            >
+                              <Share2 size={16} />
+                              Compartilhar relatório
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {report.description && (
@@ -284,6 +385,19 @@ export const ReportsList: React.FC = () => {
         </div>
       )}
         </>
+      )}
+
+      {/* Modal de Compartilhamento */}
+      {showShareModal && selectedReport && (
+        <ShareReportModal
+          isOpen={showShareModal}
+          report={selectedReport}
+          onClose={() => {
+            setShowShareModal(false);
+            setSelectedReport(null);
+          }}
+          onSuccess={handleShare}
+        />
       )}
     </div>
   );
