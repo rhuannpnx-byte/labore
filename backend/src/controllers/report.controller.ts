@@ -347,7 +347,7 @@ export const duplicateReport = async (req: Request, res: Response) => {
         title: `${originalReport.title} (Cópia)`,
         description: originalReport.description,
         status: 'DRAFT', // Sempre criar como rascunho
-        pageSettings: originalReport.pageSettings,
+        pageSettings: originalReport.pageSettings as any,
         formId: originalReport.formId,
         projectId: originalReport.projectId,
         createdById: user.userId,
@@ -459,7 +459,7 @@ export const shareReport = async (req: Request, res: Response) => {
         title: originalReport.title,
         description: originalReport.description,
         status: 'DRAFT', // Sempre criar como rascunho
-        pageSettings: originalReport.pageSettings,
+        pageSettings: originalReport.pageSettings as any,
         formId: originalReport.formId,
         projectId: targetProjectId,
         createdById: user.userId,
