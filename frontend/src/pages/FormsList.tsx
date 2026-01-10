@@ -23,10 +23,19 @@ export default function FormsList() {
   const loadForms = async () => {
     try {
       setLoading(true);
-      const response = await formsApi.list(selectedProject?.id);
+      setError('');
+      
+      if (!selectedProject?.id) {
+        setForms([]);
+        setError('Selecione uma obra para visualizar os formulários');
+        return;
+      }
+      
+      const response = await formsApi.list(selectedProject.id);
       setForms(response.data);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Erro ao carregar formulários');
+      setForms([]);
     } finally {
       setLoading(false);
     }
@@ -77,7 +86,7 @@ export default function FormsList() {
   }
   
   const user = authService.getUser();
-  const shouldShowAlert = !selectedProject && (user?.role === 'ENGENHEIRO' || user?.role === 'LABORATORISTA');
+  const shouldShowAlert = !selectedProject;
 
   return (
     <div>
@@ -90,12 +99,19 @@ export default function FormsList() {
           <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
             {selectedProject 
               ? `Obra: ${selectedProject.name}` 
-              : 'Gerencie seus formulários'}
+              : 'Selecione uma obra para visualizar'}
           </p>
         </div>
         
         <Link to="/forms/new" className="w-full sm:w-auto">
-          <Button variant="primary" size="sm" icon={<Plus size={18} />} fullWidth className="sm:w-auto">
+          <Button 
+            variant="primary" 
+            size="sm" 
+            icon={<Plus size={18} />} 
+            fullWidth 
+            className="sm:w-auto"
+            disabled={!selectedProject}
+          >
             Novo Formulário
           </Button>
         </Link>
@@ -103,28 +119,28 @@ export default function FormsList() {
 
       {/* Alerta */}
       {shouldShowAlert && (
-        <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-500 flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <h3 className="text-sm font-semibold text-yellow-800 dark:text-yellow-200 mb-1">
-                Nenhuma obra selecionada
-              </h3>
-              <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                Selecione uma obra no cabeçalho para ver os formulários específicos.
-              </p>
+        <Card className="text-center py-12 sm:py-16">
+          <CardContent>
+            <div className="inline-flex p-4 sm:p-6 bg-yellow-50 dark:bg-yellow-900/20 rounded-2xl mb-4 sm:mb-6">
+              <AlertCircle className="w-12 h-12 sm:w-16 sm:h-16 text-yellow-600 dark:text-yellow-500" />
             </div>
-          </div>
-        </div>
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+              Selecione uma obra
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 max-w-md mx-auto px-4">
+              Para visualizar e gerenciar formulários, selecione uma obra no cabeçalho superior.
+            </p>
+          </CardContent>
+        </Card>
       )}
       
-      {error && (
+      {error && !shouldShowAlert && (
         <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
           {error}
         </div>
       )}
       
-      {forms.length === 0 ? (
+      {!shouldShowAlert && forms.length === 0 && !loading ? (
         <Card className="text-center py-12 sm:py-16">
           <CardContent>
             <div className="inline-flex p-4 sm:p-6 bg-blue-50 dark:bg-blue-900/20 rounded-2xl mb-4 sm:mb-6">

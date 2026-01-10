@@ -8,34 +8,33 @@ export const listReports = async (req: Request, res: Response) => {
     const { projectId, status } = req.query;
     const user = req.user!;
 
-    const where: any = {};
-
-    // Filtro por projeto
-    if (projectId) {
-      where.projectId = projectId as string;
+    // Exigir projectId
+    if (!projectId) {
+      return res.status(400).json({ 
+        error: 'É necessário selecionar uma obra para visualizar relatórios' 
+      });
     }
+
+    const where: any = {
+      projectId: projectId as string
+    };
 
     // Filtro por status - converter 'ACTIVE' para 'PUBLISHED' (compatibilidade)
     if (status) {
       where.status = status === 'ACTIVE' ? 'PUBLISHED' : status;
     }
 
-    // Se não for SUPERADMIN, filtrar por empresa
+    // Se não for SUPERADMIN, verificar permissão do projeto
     if (user.role !== 'SUPERADMIN') {
-      where.OR = [
-        { createdById: user.userId }, // Relatórios criados pelo usuário
-        { projectId: null }, // Relatórios globais
-      ];
+      const hasAccess = await prisma.userProject.findFirst({
+        where: {
+          userId: user.userId,
+          projectId: projectId as string
+        }
+      });
 
-      // Se tiver projetos vinculados, incluir relatórios desses projetos
-      if (projectId) {
-        where.OR.push({
-          project: {
-            userProjects: {
-              some: { userId: user.userId }
-            }
-          }
-        });
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'Você não tem acesso a esta obra' });
       }
     }
 

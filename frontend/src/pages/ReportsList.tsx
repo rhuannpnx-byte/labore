@@ -35,12 +35,19 @@ export const ReportsList: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const params = selectedProject ? { projectId: selectedProject.id } : {};
-      const response = await reportsApi.list(params);
+      
+      if (!selectedProject?.id) {
+        setReports([]);
+        setError('Selecione uma obra para visualizar os relatórios');
+        return;
+      }
+      
+      const response = await reportsApi.list({ projectId: selectedProject.id });
       setReports(response.data);
     } catch (err: any) {
       console.error('Error loading reports:', err);
       setError(err.response?.data?.error || 'Erro ao carregar relatórios');
+      setReports([]);
     } finally {
       setLoading(false);
     }
@@ -81,7 +88,9 @@ export const ReportsList: React.FC = () => {
         <div className="flex-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">Relatórios Personalizados</h1>
           <p className="mt-1 text-sm sm:text-base text-gray-600 dark:text-gray-400">
-            Crie e gerencie relatórios dinâmicos com tabelas, gráficos e dados vinculados
+            {selectedProject 
+              ? `Obra: ${selectedProject.name}` 
+              : 'Selecione uma obra para visualizar'}
           </p>
         </div>
         <Button
@@ -90,13 +99,31 @@ export const ReportsList: React.FC = () => {
           size="sm"
           fullWidth
           className="sm:w-auto"
+          disabled={!selectedProject}
         >
           + Novo Relatório
         </Button>
       </div>
 
-      {/* Filtros */}
-      <div className="flex gap-2">
+      {/* Alerta quando não há obra selecionada */}
+      {!selectedProject ? (
+        <Card className="p-8 text-center">
+          <div className="inline-flex p-4 sm:p-6 bg-yellow-50 dark:bg-yellow-900/20 rounded-2xl mb-4">
+            <svg className="w-12 h-12 sm:w-16 sm:h-16 text-yellow-600 dark:text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+            Selecione uma obra
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 max-w-md mx-auto">
+            Para visualizar e gerenciar relatórios, selecione uma obra no cabeçalho superior.
+          </p>
+        </Card>
+      ) : (
+        <>
+          {/* Filtros */}
+          <div className="flex gap-2">
         <Button
           variant={statusFilter === 'ALL' ? 'primary' : 'outline'}
           onClick={() => setStatusFilter('ALL')}
@@ -255,6 +282,8 @@ export const ReportsList: React.FC = () => {
             </Card>
           ))}
         </div>
+      )}
+        </>
       )}
     </div>
   );

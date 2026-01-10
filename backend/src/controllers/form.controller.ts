@@ -32,14 +32,17 @@ export class FormController {
     try {
       const { projectId } = req.query;
       
-      // Filtro por projeto se fornecido
-      const where: any = {};
-      if (projectId) {
-        where.projectId = projectId as string;
+      // Exigir projectId
+      if (!projectId) {
+        return res.status(400).json({ 
+          error: 'É necessário selecionar uma obra para visualizar formulários' 
+        });
       }
       
       const forms = await prisma.form.findMany({
-        where,
+        where: {
+          projectId: projectId as string
+        },
         include: {
           fields: {
             orderBy: { order: 'asc' }
