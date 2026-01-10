@@ -5,7 +5,9 @@ import { Report, FormSubmission } from '../types';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
+import { Modal } from '../components/ui/Modal';
 import { useProjectContext } from '../services/project-context';
+import { Filter } from 'lucide-react';
 
 export const ReportGenerate: React.FC = () => {
   const { id: reportId } = useParams<{ id: string }>();
@@ -14,10 +16,18 @@ export const ReportGenerate: React.FC = () => {
 
   const [report, setReport] = useState<Report | null>(null);
   const [submissions, setSubmissions] = useState<FormSubmission[]>([]);
+  const [filteredSubmissions, setFilteredSubmissions] = useState<FormSubmission[]>([]);
   const [selectedSubmissions, setSelectedSubmissions] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Filtros de data
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  
+  const hasActiveFilters = startDate || endDate;
 
   useEffect(() => {
     loadData();
@@ -60,6 +70,7 @@ export const ReportGenerate: React.FC = () => {
         }
         
         setSubmissions(filtered);
+        setFilteredSubmissions(filtered);
       }
     } catch (err: any) {
       console.error('Error loading data:', err);
@@ -68,6 +79,55 @@ export const ReportGenerate: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Aplicar filtros de data
+  useEffect(() => {
+    let filtered = submissions;
+
+    // Filtrar por data de início
+    if (startDate) {
+      const start = parseLocalDate(startDate);
+      start.setHours(0, 0, 0, 0);
+      filtered = filtered.filter(s => {
+        const submissionDate = new Date(s.submittedAt);
+        return submissionDate >= start;
+      });
+    }
+
+    // Filtrar por data de fim
+    if (endDate) {
+      const end = parseLocalDate(endDate);
+      end.setHours(23, 59, 59, 999);
+      filtered = filtered.filter(s => {
+        const submissionDate = new Date(s.submittedAt);
+        return submissionDate <= end;
+      });
+    }
+
+    setFilteredSubmissions(filtered);
+    
+    // Remover seleções que não estão mais na lista filtrada
+    const filteredIds = new Set(filtered.map(s => s.id));
+    const newSelected = new Set(
+      Array.from(selectedSubmissions).filter(id => filteredIds.has(id))
+    );
+    setSelectedSubmissions(newSelected);
+  }, [submissions, startDate, endDate]);
+
+  const clearFilters = () => {
+    setStartDate('');
+    setEndDate('');
+  };
+
+  const applyFilters = () => {
+    setShowFilterModal(false);
+  };
+
+  // Função para converter string de data (YYYY-MM-DD) para Date local
+  const parseLocalDate = (dateString: string): Date => {
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day);
   };
 
   const toggleSubmission = (submissionId: string) => {
@@ -81,10 +141,10 @@ export const ReportGenerate: React.FC = () => {
   };
 
   const toggleAll = () => {
-    if (selectedSubmissions.size === submissions.length) {
+    if (selectedSubmissions.size === filteredSubmissions.length) {
       setSelectedSubmissions(new Set());
     } else {
-      setSelectedSubmissions(new Set(submissions.map(s => s.id)));
+      setSelectedSubmissions(new Set(filteredSubmissions.map(s => s.id)));
     }
   };
 
@@ -197,28 +257,46 @@ export const ReportGenerate: React.FC = () => {
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               Respostas Disponíveis
             </h3>
-            <p className="text-sm text-gray-500 mt-1">
-              {selectedSubmissions.size} de {submissions.length} selecionadas
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              {selectedSubmissions.size} de {filteredSubmissions.length} selecionadas
+              {filteredSubmissions.length !== submissions.length && (
+                <span className="ml-2 text-blue-600 dark:text-blue-400">
+                  ({submissions.length} total)
+                </span>
+              )}
             </p>
           </div>
           
-          {submissions.length > 0 && (
+          {filteredSubmissions.length > 0 && (
             <Button onClick={toggleAll} size="sm" variant="outline">
-              {selectedSubmissions.size === submissions.length ? 'Desmarcar Todas' : 'Selecionar Todas'}
+              {selectedSubmissions.size === filteredSubmissions.length ? 'Desmarcar Todas' : 'Selecionar Todas'}
             </Button>
           )}
         </div>
 
-        {submissions.length === 0 ? (
+        {filteredSubmissions.length === 0 && submissions.length > 0 ? (
           <div className="text-center py-12">
-            <div className="text-gray-400 text-5xl mb-4">📋</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <div className="text-gray-400 dark:text-gray-500 text-5xl mb-4">📅</div>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
               Nenhuma resposta encontrada
             </h3>
-            <p className="text-gray-500 mb-4">
+            <p className="text-gray-500 dark:text-gray-400 mb-4">
+              Não há respostas no período selecionado
+            </p>
+            <Button onClick={clearFilters} variant="outline">
+              Limpar Filtros
+            </Button>
+          </div>
+        ) : filteredSubmissions.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-gray-400 dark:text-gray-500 text-5xl mb-4">📋</div>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+              Nenhuma resposta encontrada
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-4">
               Não há respostas para o formulário "{report.form?.title}" neste projeto
             </p>
             <Button onClick={() => navigate(`/forms/${report.formId}/fill`)}>
@@ -227,37 +305,50 @@ export const ReportGenerate: React.FC = () => {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
                   <th className="px-6 py-3 text-left">
                     <input
                       type="checkbox"
-                      checked={selectedSubmissions.size === submissions.length && submissions.length > 0}
+                      checked={selectedSubmissions.size === filteredSubmissions.length && filteredSubmissions.length > 0}
                       onChange={toggleAll}
-                      className="rounded border-gray-300"
+                      className="rounded border-gray-300 dark:border-gray-600"
                     />
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Data
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <button
+                      onClick={() => setShowFilterModal(true)}
+                      className="flex items-center gap-1.5 hover:text-gray-700 dark:hover:text-gray-300 transition-colors -ml-0.5"
+                    >
+                      <span>DATA</span>
+                      <Filter 
+                        size={14} 
+                        className={`transition-colors ${
+                          hasActiveFilters 
+                            ? 'text-blue-600 dark:text-blue-400 fill-current' 
+                            : 'text-gray-400 dark:text-gray-500'
+                        }`}
+                      />
+                    </button>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Preenchido por
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Campos Preenchidos
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Status
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {submissions.map((submission) => (
+              <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                {filteredSubmissions.map((submission) => (
                   <tr
                     key={submission.id}
-                    className={`hover:bg-gray-50 cursor-pointer ${
-                      selectedSubmissions.has(submission.id) ? 'bg-blue-50' : ''
+                    className={`hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer ${
+                      selectedSubmissions.has(submission.id) ? 'bg-blue-50 dark:bg-blue-900/20' : ''
                     }`}
                     onClick={() => toggleSubmission(submission.id)}
                   >
@@ -266,33 +357,33 @@ export const ReportGenerate: React.FC = () => {
                         type="checkbox"
                         checked={selectedSubmissions.has(submission.id)}
                         onChange={() => toggleSubmission(submission.id)}
-                        className="rounded border-gray-300"
+                        className="rounded border-gray-300 dark:border-gray-600"
                         onClick={(e) => e.stopPropagation()}
                       />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                       {new Date(submission.submittedAt).toLocaleString('pt-BR')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="flex-shrink-0 h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
-                          <span className="text-blue-600 font-medium text-sm">
+                        <div className="flex-shrink-0 h-8 w-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                          <span className="text-blue-600 dark:text-blue-400 font-medium text-sm">
                             {submission.submittedBy?.name?.charAt(0).toUpperCase() || '?'}
                           </span>
                         </div>
                         <div className="ml-3">
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                             {submission.submittedBy?.name || 'Desconhecido'}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
+                      <div className="text-sm text-gray-900 dark:text-gray-100">
                         {submission.responses?.length || 0} campos
                       </div>
                       {submission.processingResults && submission.processingResults.length > 0 && (
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
                           {submission.processingResults.length} cálculos
                         </div>
                       )}
@@ -311,15 +402,15 @@ export const ReportGenerate: React.FC = () => {
       </Card>
 
       {/* Informações sobre geração */}
-      {submissions.length > 0 && (
-        <Card className="p-6 bg-blue-50 border-blue-200">
-          <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+      {filteredSubmissions.length > 0 && (
+        <Card className="p-6 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+          <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2 flex items-center gap-2">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             Como Funciona
           </h3>
-          <div className="text-sm text-blue-800 space-y-1">
+          <div className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
             <p>✓ Selecione uma ou mais respostas acima</p>
             <p>✓ Clique em "Gerar Relatório(s)"</p>
             <p>✓ Será gerado um relatório para cada resposta selecionada</p>
@@ -329,7 +420,7 @@ export const ReportGenerate: React.FC = () => {
       )}
 
       {/* Botão de gerar */}
-      {submissions.length > 0 && (
+      {filteredSubmissions.length > 0 && (
         <div className="flex justify-end gap-3">
           <Button
             variant="outline"
@@ -349,6 +440,74 @@ export const ReportGenerate: React.FC = () => {
           </Button>
         </div>
       )}
+
+      {/* Modal de Filtro de Data */}
+      <Modal
+        isOpen={showFilterModal}
+        onClose={() => setShowFilterModal(false)}
+        title="Filtrar por Data"
+        description="Selecione um período para filtrar as respostas"
+        size="md"
+        footer={
+          <>
+            <Button
+              variant="outline"
+              onClick={clearFilters}
+              disabled={!hasActiveFilters}
+            >
+              Limpar Filtros
+            </Button>
+            <Button
+              variant="primary"
+              onClick={applyFilters}
+            >
+              Aplicar
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Data Inicial
+            </label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Data Final
+            </label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
+            />
+          </div>
+
+          {hasActiveFilters && (
+            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                {startDate && endDate && (
+                  <>Filtrando de <strong>{parseLocalDate(startDate).toLocaleDateString('pt-BR')}</strong> até <strong>{parseLocalDate(endDate).toLocaleDateString('pt-BR')}</strong></>
+                )}
+                {startDate && !endDate && (
+                  <>Filtrando a partir de <strong>{parseLocalDate(startDate).toLocaleDateString('pt-BR')}</strong></>
+                )}
+                {!startDate && endDate && (
+                  <>Filtrando até <strong>{parseLocalDate(endDate).toLocaleDateString('pt-BR')}</strong></>
+                )}
+              </p>
+            </div>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 };
