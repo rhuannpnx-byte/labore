@@ -35,6 +35,8 @@ export default function FormBuilder() {
   const [fieldKey, setFieldKey] = useState('');
   const [fieldType, setFieldType] = useState<FieldType>('TEXT');
   const [fieldRequired, setFieldRequired] = useState(false);
+  const [fieldOptions, setFieldOptions] = useState<string[]>([]);
+  const [currentOption, setCurrentOption] = useState('');
   
   // Estados para nova regra
   const [showRuleForm, setShowRuleForm] = useState(false);
@@ -150,6 +152,7 @@ export default function FormBuilder() {
     setFieldKey(field.fieldKey);
     setFieldType(field.type);
     setFieldRequired(field.required);
+    setFieldOptions(field.config?.options || []);
     setShowFieldForm(true);
   };
   
@@ -164,7 +167,17 @@ export default function FormBuilder() {
       return;
     }
     
+    // Validar opções para campos SELECT e CHECKBOX
+    if ((fieldType === 'SELECT' || fieldType === 'CHECKBOX') && fieldOptions.length === 0) {
+      alert('Adicione pelo menos uma opção para este tipo de campo');
+      return;
+    }
+    
     try {
+      const config = (fieldType === 'SELECT' || fieldType === 'CHECKBOX') 
+        ? { options: fieldOptions }
+        : undefined;
+      
       if (editingFieldId) {
         // Atualizar campo existente
         await formsApi.updateField(id!, editingFieldId, {
@@ -172,6 +185,7 @@ export default function FormBuilder() {
           fieldKey: fieldKey,
           type: fieldType,
           required: fieldRequired,
+          config,
         });
       } else {
         // Criar novo campo
@@ -180,7 +194,8 @@ export default function FormBuilder() {
           fieldKey: fieldKey,
           type: fieldType,
           required: fieldRequired,
-          order: fields.length
+          order: fields.length,
+          config,
         });
       }
       
@@ -199,6 +214,28 @@ export default function FormBuilder() {
     setFieldKey('');
     setFieldType('TEXT');
     setFieldRequired(false);
+    setFieldOptions([]);
+    setCurrentOption('');
+  };
+  
+  const handleAddOption = () => {
+    const trimmedOption = currentOption.trim();
+    if (!trimmedOption) {
+      alert('Digite uma opção');
+      return;
+    }
+    
+    if (fieldOptions.includes(trimmedOption)) {
+      alert('Esta opção já existe');
+      return;
+    }
+    
+    setFieldOptions([...fieldOptions, trimmedOption]);
+    setCurrentOption('');
+  };
+  
+  const handleRemoveOption = (index: number) => {
+    setFieldOptions(fieldOptions.filter((_, i) => i !== index));
   };
   
   const handleAddRule = async () => {
@@ -438,7 +475,15 @@ export default function FormBuilder() {
                       </label>
                       <select
                         value={fieldType}
-                        onChange={(e) => setFieldType(e.target.value as FieldType)}
+                        onChange={(e) => {
+                          const newType = e.target.value as FieldType;
+                          setFieldType(newType);
+                          // Limpar opções se mudar de um tipo que usa opções para um que não usa
+                          if (newType !== 'SELECT' && newType !== 'CHECKBOX') {
+                            setFieldOptions([]);
+                            setCurrentOption('');
+                          }
+                        }}
                         className="input"
                       >
                         <option value="TEXT">Texto</option>
@@ -449,6 +494,68 @@ export default function FormBuilder() {
                         <option value="CHECKBOX">Checkbox</option>
                       </select>
                     </div>
+                    
+                    {/* Opções para SELECT e CHECKBOX */}
+                    {(fieldType === 'SELECT' || fieldType === 'CHECKBOX') && (
+                      <div className="space-y-3 p-3 bg-white border border-gray-300 rounded-lg">
+                        <label className="block text-sm font-semibold text-gray-700">
+                          Opções {fieldType === 'SELECT' ? 'de Seleção' : 'do Checkbox'}
+                        </label>
+                        
+                        <div className="flex gap-2">
+                          <Input
+                            value={currentOption}
+                            onChange={(e) => setCurrentOption(e.target.value)}
+                            placeholder="Digite uma opção"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleAddOption();
+                              }
+                            }}
+                            size={"sm" as any}
+                          />
+                          <Button
+                            onClick={handleAddOption}
+                            variant="outline"
+                            size="sm"
+                            icon={<Plus size={16} />}
+                          >
+                            Adicionar
+                          </Button>
+                        </div>
+                        
+                        {fieldOptions.length > 0 && (
+                          <div className="space-y-2">
+                            <p className="text-xs text-gray-600 font-medium">
+                              {fieldOptions.length} opção(ões) adicionada(s):
+                            </p>
+                            <div className="space-y-1 max-h-40 overflow-y-auto">
+                              {fieldOptions.map((option, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center justify-between gap-2 p-2 bg-gray-50 border border-gray-200 rounded group hover:bg-gray-100"
+                                >
+                                  <span className="text-sm text-gray-700 flex-1">{option}</span>
+                                  <button
+                                    onClick={() => handleRemoveOption(index)}
+                                    className="text-red-600 hover:text-red-800 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {fieldOptions.length === 0 && (
+                          <p className="text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 p-2 rounded">
+                            ⚠️ Adicione pelo menos uma opção para este campo
+                          </p>
+                        )}
+                      </div>
+                    )}
                     
                     <label className="flex items-center gap-2 text-sm">
                       <input
@@ -507,6 +614,25 @@ export default function FormBuilder() {
                                 </div>
                                 <span className="text-xs text-gray-500">← Use esta chave nas fórmulas</span>
                               </div>
+                              
+                              {/* Mostrar opções se for SELECT ou CHECKBOX */}
+                              {(field.type === 'SELECT' || field.type === 'CHECKBOX') && field.config?.options && (
+                                <div className="mt-2 p-2 bg-gray-50 rounded border border-gray-200">
+                                  <p className="text-xs font-semibold text-gray-600 mb-1">
+                                    Opções disponíveis:
+                                  </p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {field.config.options.map((option: string, idx: number) => (
+                                      <span
+                                        key={idx}
+                                        className="text-xs px-2 py-0.5 bg-white border border-gray-300 rounded text-gray-700"
+                                      >
+                                        {option}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                             <div className="flex gap-1 flex-shrink-0">
                               <button

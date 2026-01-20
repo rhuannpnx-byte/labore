@@ -354,7 +354,29 @@ export default function SubmissionView() {
                     <div className="pl-11">
                       <div className="p-3 bg-white rounded-lg border border-gray-200">
                         <p className="text-lg font-semibold text-gray-900">
-                          {response.value || <span className="text-gray-400 italic">(vazio)</span>}
+                          {(() => {
+                            // Se for checkbox com múltiplas opções (array JSON)
+                            if (response.field.type === 'CHECKBOX' && response.value && response.value.startsWith('[')) {
+                              try {
+                                const values = JSON.parse(response.value);
+                                if (Array.isArray(values) && values.length > 0) {
+                                  return (
+                                    <div className="flex flex-wrap gap-2">
+                                      {values.map((v: string, i: number) => (
+                                        <span key={i} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                                          {v}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  );
+                                }
+                              } catch (e) {
+                                // Se falhar ao parsear, exibe o valor original
+                              }
+                            }
+                            // Valor padrão
+                            return response.value || <span className="text-gray-400 italic">(vazio)</span>;
+                          })()}
                         </p>
                       </div>
                     </div>

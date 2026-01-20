@@ -546,5 +546,221 @@ export class FormController {
       });
     }
   }
+  
+  // Duplicar formulário na mesma obra
+  static async duplicate(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const userId = (req as any).user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ error: 'Usuário não autenticado' });
+      }
+      
+      // Buscar usuário para verificar permissão
+      const user = await prisma.user.findUnique({
+        where: { id: userId }
+      });
+      
+      if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN')) {
+        return res.status(403).json({ error: 'Apenas administradores podem duplicar formulários' });
+      }
+      
+      // Buscar formulário original
+      const originalForm = await prisma.form.findUnique({
+        where: { id },
+        include: {
+          fields: { orderBy: { order: 'asc' } },
+          rules: { orderBy: { order: 'asc' } }
+        }
+      });
+      
+      if (!originalForm) {
+        return res.status(404).json({ error: 'Formulário não encontrado' });
+      }
+      
+      // Criar cópia do formulário
+      const duplicatedForm = await prisma.form.create({
+        data: {
+          title: `${originalForm.title} (Cópia)`,
+          description: originalForm.description,
+          status: 'DRAFT', // Sempre criar como rascunho
+          projectId: originalForm.projectId,
+          createdById: userId,
+          fields: {
+            create: originalForm.fields.map(field => ({
+              label: field.label,
+              fieldKey: field.fieldKey,
+              type: field.type,
+              required: field.required,
+              order: field.order,
+              config: field.config
+            }))
+          },
+          rules: {
+            create: originalForm.rules.map(rule => ({
+              name: rule.name,
+              ruleKey: rule.ruleKey,
+              formula: rule.formula,
+              order: rule.order
+            }))
+          }
+        },
+        include: {
+          fields: { orderBy: { order: 'asc' } },
+          rules: { orderBy: { order: 'asc' } },
+          project: {
+            select: {
+              id: true,
+              name: true,
+              code: true
+            }
+          },
+          createdBy: {
+            select: {
+              id: true,
+              name: true,
+              email: true
+            }
+          },
+          _count: {
+            select: { submissions: true }
+          }
+        }
+      });
+      
+      res.status(201).json(duplicatedForm);
+    } catch (error: any) {
+      console.error('Erro ao duplicar formulário:', error);
+      res.status(500).json({ error: error.message });
+    }
+  }
+  
+  // Compartilhar formulário para outra obra
+  static async share(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const { targetProjectId } = req.body;
+      const userId = (req as any).user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ error: 'Usuário não autenticado' });
+      }
+      
+      if (!targetProjectId) {
+        return res.status(400).json({ error: 'targetProjectId é obrigatório' });
+      }
+      
+      // Buscar usuário para verificar permissão
+      const user = await prisma.user.findUnique({
+        where: { id: userId }
+      });
+      
+      if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN')) {
+        return res.status(403).json({ error: 'Apenas administradores podem compartilhar formulários' });
+      }
+      
+      // Buscar formulário original
+      const originalForm = await prisma.form.findUnique({
+        where: { id },
+        include: {
+          fields: { orderBy: { order: 'asc' } },
+          rules: { orderBy: { order: 'asc' } },
+          project: {
+            select: {
+              id: true,
+              companyId: true
+            }
+          }
+        }
+      });
+      
+      if (!originalForm) {
+        return res.status(404).json({ error: 'Formulário não encontrado' });
+      }
+      
+      // Buscar obra de destino
+      const targetProject = await prisma.project.findUnique({
+        where: { id: targetProjectId },
+        select: {
+          id: true,
+          name: true,
+          companyId: true
+        }
+      });
+      
+      if (!targetProject) {
+        return res.status(404).json({ error: 'Obra de destino não encontrada' });
+      }
+      
+      // Verificar se as obras pertencem à mesma empresa
+      if (originalForm.project.companyId !== targetProject.companyId) {
+        return res.status(403).json({ error: 'Só é possível compartilhar formulários entre obras da mesma empresa' });
+      }
+      
+      // Verificar se o formulário já existe na obra de destino
+      const existingForm = await prisma.form.findFirst({
+        where: {
+          projectId: targetProjectId,
+          title: originalForm.title
+        }
+      });
+      
+      // Criar cópia do formulário na obra de destino
+      const sharedForm = await prisma.form.create({
+        data: {
+          title: existingForm ? `${originalForm.title} (Compartilhado)` : originalForm.title,
+          description: originalForm.description,
+          status: 'DRAFT', // Sempre criar como rascunho
+          projectId: targetProjectId,
+          createdById: userId,
+          fields: {
+            create: originalForm.fields.map(field => ({
+              label: field.label,
+              fieldKey: field.fieldKey,
+              type: field.type,
+              required: field.required,
+              order: field.order,
+              config: field.config
+            }))
+          },
+          rules: {
+            create: originalForm.rules.map(rule => ({
+              name: rule.name,
+              ruleKey: rule.ruleKey,
+              formula: rule.formula,
+              order: rule.order
+            }))
+          }
+        },
+        include: {
+          fields: { orderBy: { order: 'asc' } },
+          rules: { orderBy: { order: 'asc' } },
+          project: {
+            select: {
+              id: true,
+              name: true,
+              code: true
+            }
+          },
+          createdBy: {
+            select: {
+              id: true,
+              name: true,
+              email: true
+            }
+          },
+          _count: {
+            select: { submissions: true }
+          }
+        }
+      });
+      
+      res.status(201).json(sharedForm);
+    } catch (error: any) {
+      console.error('Erro ao compartilhar formulário:', error);
+      res.status(500).json({ error: error.message });
+    }
+  }
 }
 

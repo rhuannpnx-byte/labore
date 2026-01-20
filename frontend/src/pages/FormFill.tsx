@@ -167,6 +167,53 @@ export default function FormFill() {
         );
       
       case 'CHECKBOX':
+        // Se houver opções configuradas, renderiza checkboxes múltiplos
+        if (field.config?.options && Array.isArray(field.config.options)) {
+          const selectedValues = value ? JSON.parse(value) : [];
+          
+          const toggleOption = (option: string) => {
+            const newValues = selectedValues.includes(option)
+              ? selectedValues.filter((v: string) => v !== option)
+              : [...selectedValues, option];
+            onChange(JSON.stringify(newValues));
+          };
+          
+          return (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                {fieldLabel}
+                {field.required && <span className="text-red-500 ml-1">*</span>}
+              </label>
+              <div className="space-y-2">
+                {field.config.options.map((option: string) => (
+                  <label
+                    key={option}
+                    className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedValues.includes(option)}
+                      onChange={() => toggleOption(option)}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-sm font-medium text-gray-900">{option}</span>
+                  </label>
+                ))}
+              </div>
+              {field.required && selectedValues.length === 0 && (
+                <input
+                  type="text"
+                  value=""
+                  required
+                  style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}
+                  tabIndex={-1}
+                />
+              )}
+            </div>
+          );
+        }
+        
+        // Checkbox único (sim/não) - para compatibilidade com campos antigos
         return (
           <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
             <input

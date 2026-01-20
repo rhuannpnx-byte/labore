@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Eye, Edit, Trash2, FileText, Clock, Layers, CheckSquare, AlertCircle, ChevronRight } from 'lucide-react';
+import { Plus, Eye, Edit, Trash2, FileText, Clock, Layers, CheckSquare, AlertCircle, ChevronRight, MoreVertical, Copy, Share2 } from 'lucide-react';
 import { formsApi } from '../services/api';
 import { useProjectContext } from '../services/project-context';
 import { authService } from '../services/auth';
@@ -9,12 +9,17 @@ import { format } from 'date-fns';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
+import { ShareFormModal } from '../components/ShareFormModal';
 
 export default function FormsList() {
   const [forms, setForms] = useState<Form[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [selectedFormToShare, setSelectedFormToShare] = useState<Form | null>(null);
   const { selectedProject } = useProjectContext();
+  const user = authService.getUser();
   
   useEffect(() => {
     loadForms();
@@ -54,6 +59,25 @@ export default function FormsList() {
     }
   };
   
+  const handleDuplicate = async (formId: string) => {
+    try {
+      setOpenMenuId(null);
+      await formsApi.duplicate(formId);
+      alert('Formulário duplicado com sucesso!');
+      loadForms();
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Erro ao duplicar formulário');
+    }
+  };
+  
+  const handleShare = (form: Form) => {
+    setSelectedFormToShare(form);
+    setShowShareModal(true);
+    setOpenMenuId(null);
+  };
+  
+  const canManageForms = user?.role === 'ADMIN' || user?.role === 'SUPERADMIN';
+  
   const getStatusBadge = (status: string) => {
     const variants: Record<string, 'secondary' | 'success' | 'warning'> = {
       DRAFT: 'secondary',
@@ -85,7 +109,6 @@ export default function FormsList() {
     );
   }
   
-  const user = authService.getUser();
   const shouldShowAlert = !selectedProject;
 
   return (
@@ -176,7 +199,45 @@ export default function FormsList() {
                       <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100 flex-1">
                         {form.title}
                       </h3>
-                      {getStatusBadge(form.status)}
+                      <div className="flex items-center gap-2">
+                        {getStatusBadge(form.status)}
+                        
+                        {/* Menu de três pontos - apenas para ADMIN e SUPERADMIN */}
+                        {canManageForms && (
+                          <div className="relative">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              icon={<MoreVertical size={16} />}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenMenuId(openMenuId === form.id ? null : form.id);
+                              }}
+                            />
+                            {openMenuId === form.id && (
+                              <div
+                                className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <button
+                                  onClick={() => handleDuplicate(form.id)}
+                                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                                >
+                                  <Copy size={16} />
+                                  Duplicar formulário
+                                </button>
+                                <button
+                                  onClick={() => handleShare(form)}
+                                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                                >
+                                  <Share2 size={16} />
+                                  Compartilhar formulário
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     
                     {form.description && (
@@ -246,6 +307,19 @@ export default function FormsList() {
             </Card>
           ))}
         </div>
+      )}
+      
+      {/* Share Form Modal */}
+      {showShareModal && selectedFormToShare && (
+        <ShareFormModal
+          isOpen={showShareModal}
+          onClose={() => {
+            setShowShareModal(false);
+            setSelectedFormToShare(null);
+          }}
+          form={selectedFormToShare}
+          onSuccess={loadForms}
+        />
       )}
     </div>
   );

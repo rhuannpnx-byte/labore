@@ -124,3 +124,4 @@ Os seguintes documentos foram atualizados para incluir as novas variáveis:
 **Data de Implementação**: 09/01/2026
 **Versão**: 2.1
 
+
