@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Eye, Edit, Trash2, FileText, Clock, Layers, CheckSquare, AlertCircle, ChevronRight, MoreVertical, Copy, Share2 } from 'lucide-react';
 import { formsApi } from '../services/api';
@@ -9,21 +9,41 @@ import { format } from 'date-fns';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
-import { ShareFormModal } from '../components/ShareFormModal';
+import ShareFormModal from '../components/ShareFormModal';
 
 export default function FormsList() {
   const [forms, setForms] = useState<Form[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { selectedProject } = useProjectContext();
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
-  const [selectedFormToShare, setSelectedFormToShare] = useState<Form | null>(null);
-  const { selectedProject } = useProjectContext();
-  const user = authService.getUser();
+  const [selectedForm, setSelectedForm] = useState<Form | null>(null);
+  const menuRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  
+  const currentUser = authService.getUser();
+  const canManageForms = currentUser?.role === 'SUPERADMIN' || currentUser?.role === 'ADMIN';
   
   useEffect(() => {
     loadForms();
   }, [selectedProject]);
+
+  // Fechar menu ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (openMenuId && menuRefs.current[openMenuId]) {
+        const menuElement = menuRefs.current[openMenuId];
+        if (menuElement && !menuElement.contains(event.target as Node)) {
+          setOpenMenuId(null);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [openMenuId]);
   
   const loadForms = async () => {
     try {
@@ -58,25 +78,38 @@ export default function FormsList() {
       alert(err.response?.data?.error || 'Erro ao excluir formulário');
     }
   };
-  
-  const handleDuplicate = async (formId: string) => {
+
+  const handleDuplicate = async (form: Form) => {
+    setOpenMenuId(null);
+    
+    if (!window.confirm(`Deseja duplicar o formulário "${form.title}"?`)) {
+      return;
+    }
+
     try {
-      setOpenMenuId(null);
-      await formsApi.duplicate(formId);
+      const response = await formsApi.duplicate(form.id);
+      setForms([response.data, ...forms]);
       alert('Formulário duplicado com sucesso!');
-      loadForms();
-    } catch (error: any) {
-      alert(error.response?.data?.error || 'Erro ao duplicar formulário');
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Erro ao duplicar formulário');
     }
   };
-  
-  const handleShare = (form: Form) => {
-    setSelectedFormToShare(form);
-    setShowShareModal(true);
+
+  const handleOpenShareModal = (form: Form) => {
     setOpenMenuId(null);
+    setSelectedForm(form);
+    setShowShareModal(true);
   };
-  
-  const canManageForms = user?.role === 'ADMIN' || user?.role === 'SUPERADMIN';
+
+  const handleShare = async () => {
+    // Modal callback - recarregar lista
+    loadForms();
+  };
+
+  const toggleMenu = (formId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setOpenMenuId(openMenuId === formId ? null : formId);
+  };
   
   const getStatusBadge = (status: string) => {
     const variants: Record<string, 'secondary' | 'success' | 'warning'> = {
@@ -109,6 +142,7 @@ export default function FormsList() {
     );
   }
   
+  const user = authService.getUser();
   const shouldShowAlert = !selectedProject;
 
   return (
@@ -195,6 +229,7 @@ export default function FormsList() {
                   
                   {/* Content */}
                   <div className="flex-1 min-w-0">
+                    {/* Cabeçalho com título, badge e menu */}
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100 flex-1">
                         {form.title}
@@ -202,37 +237,42 @@ export default function FormsList() {
                       <div className="flex items-center gap-2">
                         {getStatusBadge(form.status)}
                         
-                        {/* Menu de três pontos - apenas para ADMIN e SUPERADMIN */}
+                        {/* Menu de 3 pontos - Apenas para ADMIN e SUPERADMIN */}
                         {canManageForms && (
-                          <div className="relative">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              icon={<MoreVertical size={16} />}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setOpenMenuId(openMenuId === form.id ? null : form.id);
-                              }}
-                            />
+                          <div className="relative" ref={(el) => (menuRefs.current[form.id] = el)}>
+                            <button
+                              onClick={(e) => toggleMenu(form.id, e)}
+                              className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                              title="Mais opções"
+                            >
+                              <MoreVertical size={18} className="text-gray-600 dark:text-gray-400" />
+                            </button>
+                            
+                            {/* Dropdown menu */}
                             {openMenuId === form.id && (
-                              <div
-                                className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <button
-                                  onClick={() => handleDuplicate(form.id)}
-                                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-                                >
-                                  <Copy size={16} />
-                                  Duplicar formulário
-                                </button>
-                                <button
-                                  onClick={() => handleShare(form)}
-                                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-                                >
-                                  <Share2 size={16} />
-                                  Compartilhar formulário
-                                </button>
+                              <div className="absolute right-0 top-8 mt-1 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
+                                <div className="py-1">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDuplicate(form);
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                                  >
+                                    <Copy size={16} />
+                                    Duplicar formulário
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleOpenShareModal(form);
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                                  >
+                                    <Share2 size={16} />
+                                    Compartilhar formulário
+                                  </button>
+                                </div>
                               </div>
                             )}
                           </div>
@@ -308,17 +348,14 @@ export default function FormsList() {
           ))}
         </div>
       )}
-      
+
       {/* Share Form Modal */}
-      {showShareModal && selectedFormToShare && (
+      {showShareModal && selectedForm && (
         <ShareFormModal
           isOpen={showShareModal}
-          onClose={() => {
-            setShowShareModal(false);
-            setSelectedFormToShare(null);
-          }}
-          form={selectedFormToShare}
-          onSuccess={loadForms}
+          onClose={() => setShowShareModal(false)}
+          form={selectedForm}
+          onSuccess={handleShare}
         />
       )}
     </div>

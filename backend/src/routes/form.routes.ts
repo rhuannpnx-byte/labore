@@ -1,7 +1,11 @@
 import { Router } from 'express';
 import { FormController } from '../controllers/form.controller';
+import { authenticate } from '../middleware/auth.middleware';
 
 export const formRoutes = Router();
+
+// Todas as rotas requerem autenticação
+formRoutes.use(authenticate);
 
 // Listar todos os formulários
 formRoutes.get('/', FormController.list);
@@ -17,12 +21,6 @@ formRoutes.put('/:id', FormController.update);
 
 // Deletar formulário
 formRoutes.delete('/:id', FormController.delete);
-
-// Duplicar formulário
-formRoutes.post('/:id/duplicate', FormController.duplicate);
-
-// Compartilhar formulário
-formRoutes.post('/:id/share', FormController.share);
 
 // Adicionar campo ao formulário
 formRoutes.post('/:id/fields', FormController.addField);
@@ -47,4 +45,10 @@ formRoutes.delete('/:id/rules/:ruleId', FormController.deleteRule);
 
 // Validar fórmula
 formRoutes.post('/validate-formula', FormController.validateFormula);
+
+// Duplicar formulário
+formRoutes.post('/:id/duplicate', FormController.duplicate);
+
+// Compartilhar formulário para outro projeto
+formRoutes.post('/:id/share', FormController.share);
 

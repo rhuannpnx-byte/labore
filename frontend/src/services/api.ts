@@ -89,12 +89,6 @@ export const formsApi = {
     api.put<Form>(`/forms/${id}`, data),
   delete: (id: string) => api.delete(`/forms/${id}`),
   
-  // Duplicate and Share
-  duplicate: (formId: string) => 
-    api.post(`/forms/${formId}/duplicate`),
-  share: (formId: string, targetProjectId: string) => 
-    api.post(`/forms/${formId}/share`, { targetProjectId }),
-  
   // Fields
   addField: (formId: string, data: CreateFieldData) => 
     api.post(`/forms/${formId}/fields`, data),
@@ -120,6 +114,14 @@ export const formsApi = {
   // Formula validation
   validateFormula: (formula: string, formId?: string) => 
     api.post('/forms/validate-formula', { formula, formId }),
+  
+  // Duplicate form
+  duplicate: (formId: string) =>
+    api.post(`/forms/${formId}/duplicate`),
+  
+  // Share form to another project
+  share: (formId: string, targetProjectId: string) =>
+    api.post(`/forms/${formId}/share`, { targetProjectId }),
 };
 
 // Submissions API com suporte offline
