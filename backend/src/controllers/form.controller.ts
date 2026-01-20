@@ -580,7 +580,7 @@ export class FormController {
         const hasAccess = await prisma.userProject.findFirst({
           where: {
             userId: user.userId,
-            projectId: originalForm.projectId
+            projectId: originalForm.projectId || undefined
           }
         });
 
@@ -688,7 +688,7 @@ export class FormController {
       }
 
       // Verificar se os projetos são da mesma empresa
-      if (originalForm.project.companyId !== targetProject.companyId) {
+      if (originalForm.project?.companyId !== targetProject.companyId) {
         return res.status(403).json({ error: 'Só é possível compartilhar formulários entre obras da mesma empresa' });
       }
 
