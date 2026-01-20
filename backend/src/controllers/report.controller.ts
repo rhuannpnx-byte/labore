@@ -460,7 +460,7 @@ export const shareReport = async (req: Request, res: Response) => {
         description: originalReport.description,
         status: 'DRAFT', // Sempre criar como rascunho
         pageSettings: originalReport.pageSettings as any,
-        formId: originalReport.formId,
+        formId: null, // Permitir que o usuário selecione um formulário da obra de destino
         projectId: targetProjectId,
         createdById: user.userId,
         elements: {

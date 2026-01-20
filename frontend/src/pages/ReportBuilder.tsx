@@ -443,7 +443,7 @@ export const ReportBuilder: React.FC = () => {
               value={formId}
               onChange={(e) => setFormId(e.target.value)}
               className="w-full px-3 py-2 border rounded-lg"
-              disabled={id && id !== 'new'}
+              disabled={id && id !== 'new' && status !== 'DRAFT'}
             >
               <option value="">Selecione um formulário</option>
               {forms.map((f) => (
@@ -455,6 +455,11 @@ export const ReportBuilder: React.FC = () => {
             {form && (
               <p className="text-xs text-gray-500 mt-1">
                 {form.fields?.length || 0} campos • {form.rules?.length || 0} cálculos
+              </p>
+            )}
+            {id && id !== 'new' && status === 'DRAFT' && (
+              <p className="text-xs text-amber-600 mt-1">
+                ⚠️ Você pode alterar o formulário enquanto o relatório estiver como rascunho
               </p>
             )}
           </div>
